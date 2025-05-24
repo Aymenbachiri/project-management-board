@@ -2,8 +2,23 @@
 
 import { fadeInUp } from "@/lib/animation/animation";
 import { motion } from "framer-motion";
-import { Kanban, Github, Twitter, Linkedin } from "lucide-react";
+import { Kanban, Github, Heart } from "lucide-react";
 import type { JSX } from "react";
+
+const footerLinks = [
+  {
+    title: "Product",
+    links: ["Features", "Analytics", "Integrations", "API"],
+  },
+  {
+    title: "Company",
+    links: ["About", "Blog", "Careers", "Contact"],
+  },
+  {
+    title: "Support",
+    links: ["Help Center", "Documentation", "Community", "Status"],
+  },
+];
 
 export function Footer(): JSX.Element {
   return (
@@ -31,10 +46,11 @@ export function Footer(): JSX.Element {
               The ultimate project management solution for modern teams.
             </p>
             <div className="flex space-x-4">
-              {[Github, Twitter, Linkedin].map((Icon, index) => (
+              {[Github].map((Icon, index) => (
                 <motion.a
                   key={index}
-                  href="#"
+                  href="https://github.com/Aymenbachiri/project-management-board"
+                  target="_blank"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   className="text-muted-foreground hover:text-primary transition-colors"
@@ -45,20 +61,7 @@ export function Footer(): JSX.Element {
             </div>
           </motion.div>
 
-          {[
-            {
-              title: "Product",
-              links: ["Features", "Analytics", "Integrations", "API"],
-            },
-            {
-              title: "Company",
-              links: ["About", "Blog", "Careers", "Contact"],
-            },
-            {
-              title: "Support",
-              links: ["Help Center", "Documentation", "Community", "Status"],
-            },
-          ].map((section) => (
+          {footerLinks.map((section) => (
             <motion.div
               key={section.title}
               variants={fadeInUp}
@@ -87,7 +90,19 @@ export function Footer(): JSX.Element {
           transition={{ delay: 0.5 }}
           className="text-muted-foreground mt-8 border-t pt-8 text-center text-sm"
         >
-          <p>&copy; 2024 ProjectFlow. All rights reserved.</p>
+          <p>
+            &copy; {new Date().getFullYear()} ProjectFlow. All rights reserved.
+          </p>
+          <p className="flex items-center justify-center gap-2">
+            Built with <Heart className="fill-red-600 text-red-600" /> by{" "}
+            <a
+              className="underline"
+              href="https://www.linkedin.com/in/aymen-bachiri-9442b5287/"
+              target="_blank"
+            >
+              Aymen
+            </a>
+          </p>
         </motion.div>
       </div>
     </footer>
