@@ -1,12 +1,17 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/home/theme-toggle";
-import { Kanban } from "lucide-react";
-import type { JSX } from "react";
+import { Kanban, Menu, X } from "lucide-react";
+import { useState, type JSX } from "react";
+import Link from "next/link";
+
+const navItems = ["Features", "Analytics", "Pricing", "About"];
 
 export function Header(): JSX.Element {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -25,7 +30,7 @@ export function Header(): JSX.Element {
         </motion.div>
 
         <nav className="hidden items-center space-x-8 md:flex">
-          {["Features", "Analytics", "Pricing", "About"].map((item) => (
+          {navItems.map((item) => (
             <motion.a
               key={item}
               href={`#${item.toLowerCase()}`}
@@ -38,7 +43,18 @@ export function Header(): JSX.Element {
           ))}
         </nav>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center md:hidden">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Toggle menu"
+          >
+            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
+
+        <div className="hidden items-center space-x-4 md:flex">
           <ThemeToggle />
           <Button variant="ghost" className="hidden sm:inline-flex">
             Sign In
@@ -46,6 +62,35 @@ export function Header(): JSX.Element {
           <Button>Get Started</Button>
         </div>
       </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="px-4 pb-4 md:hidden"
+          >
+            <nav className="flex flex-col space-y-2">
+              {navItems.map((item) => (
+                <Link
+                  onClick={() => setIsOpen(false)}
+                  key={item}
+                  href={`#${item.toLowerCase()}`}
+                  className="hover:text-primary block text-sm font-medium transition-colors"
+                >
+                  {item}
+                </Link>
+              ))}
+              <div className="mt-4 flex flex-col gap-2">
+                <Button variant="ghost">Sign In</Button>
+                <Button>Get Started</Button>
+                <ThemeToggle />
+              </div>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 }
