@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Project Management Board",
+  title: "ProjectFlow | Project Management Board",
   description:
     "A comprehensive project management application with Kanban boards",
 };
