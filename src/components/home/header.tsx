@@ -59,7 +59,6 @@ export function Header(): JSX.Element {
           <Button variant="ghost" className="hidden sm:inline-flex">
             Sign In
           </Button>
-          <Button>Get Started</Button>
         </div>
       </div>
 
@@ -84,7 +83,6 @@ export function Header(): JSX.Element {
               ))}
               <div className="mt-4 flex flex-col gap-2">
                 <Button variant="ghost">Sign In</Button>
-                <Button>Get Started</Button>
                 <ThemeToggle />
               </div>
             </nav>
