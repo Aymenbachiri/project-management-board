@@ -57,14 +57,6 @@ export async function signup(formData: FormData) {
         hashedPassword,
       },
     });
-
-    const payload = {
-      email,
-      password,
-      redirectTo: "/signin",
-    };
-
-    await signIn("credentials", payload);
   } catch (error) {
     console.error("failed to signup: ", error);
     return {

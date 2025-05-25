@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import type { JSX } from "react";
-import { SignupPage } from "./_components/signin-page";
+import { SignupPage } from "./_components/signup-page";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
