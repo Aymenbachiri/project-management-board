@@ -5,6 +5,7 @@ import { LenisProvider } from "./lenis-provider";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 import { Header } from "@/components/home/header";
+import NextTopLoader from "nextjs-toploader";
 
 export async function Providers({
   children,
@@ -17,6 +18,7 @@ export async function Providers({
     <SessionProvider session={session}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <Header session={session} />
+        <NextTopLoader color="red" />
         <LenisProvider />
         <Toaster richColors position="top-right" />
         {children}

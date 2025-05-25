@@ -24,6 +24,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { login } from "@/lib/actions/auth";
 
 const formSchema = z.object({
   email: z
@@ -82,13 +83,7 @@ export function SignInForm(): JSX.Element {
   const isSubmitting = form.formState.isSubmitting;
 
   async function onSubmit(values: FormData) {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    console.log("Form submitted:", values);
-
-    // Here you would typically handle the authentication
-    // For example: await signIn(values.email, values.password)
+    await login(values);
   }
 
   return (
