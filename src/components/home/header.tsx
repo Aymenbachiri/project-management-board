@@ -6,10 +6,15 @@ import { ThemeToggle } from "@/components/home/theme-toggle";
 import { Kanban, Menu, X } from "lucide-react";
 import { useState, type JSX } from "react";
 import Link from "next/link";
+import type { Session } from "next-auth";
 
 const navItems = ["Features", "Analytics", "Pricing", "About"];
 
-export function Header(): JSX.Element {
+type HeaderProps = {
+  session: Session | null;
+};
+
+export function Header({ session }: HeaderProps): JSX.Element {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   return (
@@ -26,14 +31,16 @@ export function Header(): JSX.Element {
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
         >
           <Kanban className="text-primary h-8 w-8" />
-          <span className="text-xl font-bold">ProjectFlow</span>
+          <Link href="/" className="text-xl font-bold">
+            ProjectFlow
+          </Link>
         </motion.div>
 
         <nav className="hidden items-center space-x-8 md:flex">
           {navItems.map((item) => (
             <motion.a
               key={item}
-              href={`#${item.toLowerCase()}`}
+              href={`/#${item.toLowerCase()}`}
               className="hover:text-primary text-sm font-medium transition-colors"
               whileHover={{ y: -2 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
@@ -56,9 +63,15 @@ export function Header(): JSX.Element {
 
         <div className="hidden items-center space-x-4 md:flex">
           <ThemeToggle />
-          <Button variant="ghost" className="hidden sm:inline-flex">
-            Sign In
-          </Button>
+          {session?.user ? (
+            <Button variant="destructive" className="hidden sm:inline-flex">
+              Sign Out
+            </Button>
+          ) : (
+            <Button variant="ghost" className="hidden sm:inline-flex" asChild>
+              <Link href="/signin">Sign In</Link>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -75,14 +88,20 @@ export function Header(): JSX.Element {
                 <Link
                   onClick={() => setIsOpen(false)}
                   key={item}
-                  href={`#${item.toLowerCase()}`}
+                  href={`/#${item.toLowerCase()}`}
                   className="hover:text-primary block text-sm font-medium transition-colors"
                 >
                   {item}
                 </Link>
               ))}
               <div className="mt-4 flex flex-col gap-2">
-                <Button variant="ghost">Sign In</Button>
+                {session?.user ? (
+                  <Button variant="destructive">Sign Out</Button>
+                ) : (
+                  <Button variant="ghost">
+                    <Link href="/signin">Sign In</Link>
+                  </Button>
+                )}
                 <ThemeToggle />
               </div>
             </nav>

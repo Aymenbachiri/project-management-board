@@ -2,17 +2,25 @@ import type { JSX } from "react";
 import { ThemeProvider } from "./theme-povider";
 import { Toaster } from "sonner";
 import { LenisProvider } from "./lenis-provider";
+import { SessionProvider } from "next-auth/react";
+import { auth } from "@/auth";
+import { Header } from "@/components/home/header";
 
-export function Providers({
+export async function Providers({
   children,
 }: {
   children: React.ReactNode;
-}): JSX.Element {
+}): Promise<JSX.Element> {
+  const session = await auth();
+
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <LenisProvider />
-      <Toaster richColors position="top-right" />
-      {children}
-    </ThemeProvider>
+    <SessionProvider session={session}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <Header session={session} />
+        <LenisProvider />
+        <Toaster richColors position="top-right" />
+        {children}
+      </ThemeProvider>
+    </SessionProvider>
   );
 }

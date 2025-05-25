@@ -11,8 +11,10 @@
   "dependencies": {
     "@auth/mongodb-adapter": "^3.9.1",
     "@auth/prisma-adapter": "^2.9.1",
+    "@hookform/resolvers": "^5.0.1",
     "@prisma/client": "^6.8.2",
     "@radix-ui/react-avatar": "^1.1.10",
+    "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-progress": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@types/bcryptjs": "^3.0.0",
@@ -29,8 +31,10 @@
     "prettier-plugin-tailwindcss": "^0.6.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.56.4",
     "sonner": "^2.0.3",
-    "tailwind-merge": "^3.3.0"
+    "tailwind-merge": "^3.3.0",
+    "zod": "^3.25.28"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
