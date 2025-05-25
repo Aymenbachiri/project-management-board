@@ -1,10 +1,7 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { motion } from "framer-motion";
-import { type JSX, useState, useTransition } from "react";
+import { type JSX } from "react";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,82 +21,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { login } from "@/lib/actions/auth";
-import { toast } from "sonner";
+
 import Link from "next/link";
 
-const signinSchema = z.object({
-  email: z
-    .string()
-    .min(1, { message: "Email is required" })
-    .email({ message: "Please enter a valid email address" }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters" })
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
-      message:
-        "Password must contain at least one uppercase letter, one lowercase letter, and one number",
-    }),
-});
-
-type SignIn = z.infer<typeof signinSchema>;
-
-const containerVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      ease: "easeOut",
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: "easeOut" },
-  },
-};
-
-const buttonVariants = {
-  idle: { scale: 1 },
-  hover: { scale: 1.02 },
-  tap: { scale: 0.98 },
-};
+import {
+  buttonVariants,
+  containerVariants,
+  itemVariants,
+} from "../_lib/animation";
+import { useSignin } from "../_lib/useSignin";
 
 export function SignInForm(): JSX.Element {
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [_, startTransition] = useTransition();
-
-  const form = useForm<SignIn>({
-    resolver: zodResolver(signinSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-  const isSubmitting = form.formState.isSubmitting;
-
-  async function onSubmit(values: SignIn) {
-    startTransition(async () => {
-      const formData = new FormData();
-      formData.append("email", values.email);
-      formData.append("password", values.password);
-
-      const result = await login(formData);
-
-      if (result?.error) {
-        toast.error(result.error);
-      } else {
-        toast.success("Signed in successfully!");
-      }
-    });
-  }
+  const { showPassword, setShowPassword, isSubmitting, onSubmit, form } =
+    useSignin();
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4 dark:from-slate-900 dark:to-slate-800">
