@@ -3,10 +3,11 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/home/theme-toggle";
-import { Kanban, Menu, X } from "lucide-react";
+import { Kanban, Menu, User, X } from "lucide-react";
 import { useState, type JSX } from "react";
 import Link from "next/link";
 import type { Session } from "next-auth";
+import { signOut } from "next-auth/react";
 
 const navItems = ["Features", "Analytics", "Pricing", "About"];
 
@@ -64,9 +65,19 @@ export function Header({ session }: HeaderProps): JSX.Element {
         <div className="hidden items-center space-x-4 md:flex">
           <ThemeToggle />
           {session?.user ? (
-            <Button variant="destructive" className="hidden sm:inline-flex">
-              Sign Out
-            </Button>
+            <>
+              <div className="flex items-center gap-2">
+                <User />
+                <h2>{session?.user?.name}</h2>
+              </div>
+              <Button
+                onClick={() => signOut()}
+                variant="destructive"
+                className="hidden sm:inline-flex"
+              >
+                Sign Out
+              </Button>
+            </>
           ) : (
             <Button variant="ghost" className="hidden sm:inline-flex" asChild>
               <Link href="/signin">Sign In</Link>
@@ -96,7 +107,15 @@ export function Header({ session }: HeaderProps): JSX.Element {
               ))}
               <div className="mt-4 flex flex-col gap-2">
                 {session?.user ? (
-                  <Button variant="destructive">Sign Out</Button>
+                  <>
+                    <div className="flex items-center gap-2">
+                      <User />
+                      <h2>{session?.user?.name}</h2>
+                    </div>
+                    <Button variant="destructive" onClick={() => signOut()}>
+                      Sign Out
+                    </Button>
+                  </>
                 ) : (
                   <Button variant="ghost">
                     <Link href="/signin">Sign In</Link>

@@ -3,12 +3,14 @@ import "server-only";
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
+import { prisma } from "../db/prisma";
+import { saltAndHashPassword } from "../utils";
 
 export async function login(formData: FormData) {
   const payload = {
     email: formData.get("email"),
     password: formData.get("password"),
-    redirectTo: "/",
+    redirectTo: "/dashboard",
   };
 
   try {
@@ -25,5 +27,49 @@ export async function login(formData: FormData) {
 
     throw error;
   }
+  revalidatePath("/");
+}
+
+export async function signup(formData: FormData) {
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+  const name = formData.get("name") as string;
+
+  if (!email || !password) {
+    return { error: "Email and password are required" };
+  }
+
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return { error: "User with this email already exists" };
+    }
+
+    const hashedPassword = saltAndHashPassword(password);
+    await prisma.user.create({
+      data: {
+        email,
+        name,
+        hashedPassword,
+      },
+    });
+
+    const payload = {
+      email,
+      password,
+      redirectTo: "/signin",
+    };
+
+    await signIn("credentials", payload);
+  } catch (error) {
+    console.error("failed to signup: ", error);
+    return {
+      error: `Failed to create account. Please try again. eror: ${error}`,
+    };
+  }
+
   revalidatePath("/");
 }

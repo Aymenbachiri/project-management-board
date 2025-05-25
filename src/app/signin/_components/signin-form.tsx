@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import { type JSX, useState } from "react";
+import { type JSX, useState, useTransition } from "react";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,8 +25,10 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { login } from "@/lib/actions/auth";
+import { toast } from "sonner";
+import Link from "next/link";
 
-const formSchema = z.object({
+const signinSchema = z.object({
   email: z
     .string()
     .min(1, { message: "Email is required" })
@@ -40,7 +42,7 @@ const formSchema = z.object({
     }),
 });
 
-type FormData = z.infer<typeof formSchema>;
+type SignIn = z.infer<typeof signinSchema>;
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -72,9 +74,10 @@ const buttonVariants = {
 
 export function SignInForm(): JSX.Element {
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [_, startTransition] = useTransition();
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<SignIn>({
+    resolver: zodResolver(signinSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -82,8 +85,20 @@ export function SignInForm(): JSX.Element {
   });
   const isSubmitting = form.formState.isSubmitting;
 
-  async function onSubmit(values: FormData) {
-    await login(values);
+  async function onSubmit(values: SignIn) {
+    startTransition(async () => {
+      const formData = new FormData();
+      formData.append("email", values.email);
+      formData.append("password", values.password);
+
+      const result = await login(formData);
+
+      if (result?.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Signed in successfully!");
+      }
+    });
   }
 
   return (
@@ -237,13 +252,14 @@ export function SignInForm(): JSX.Element {
             <motion.div variants={itemVariants} className="pt-4 text-center">
               <p className="text-sm text-slate-600 dark:text-slate-400">
                 Don&apos;t have an account?{" "}
-                <motion.a
-                  href="#"
-                  whileHover={{ scale: 1.05 }}
-                  className="font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                >
-                  Sign up here
-                </motion.a>
+                <Link href="/signup">
+                  <motion.span
+                    whileHover={{ scale: 1.05 }}
+                    className="font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    Sign up here
+                  </motion.span>
+                </Link>
               </p>
             </motion.div>
           </CardContent>
