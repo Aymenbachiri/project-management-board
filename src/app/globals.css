@@ -163,3 +163,18 @@
     clip-path: polygon(171% 50%, 50% 171%, -50% 71%, 50% -71%);
   }
 }
+
+/* @media (prefers-color-scheme: dark) {
+  .swagger-ui {
+    filter: invert(88%) hue-rotate(180deg);
+  }
+  .swagger-ui .microlight {
+    filter: invert(100%) hue-rotate(180deg);
+  }
+} */
+
+.dark .swagger-ui {
+  filter: invert(1) hue-rotate(180deg) !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}

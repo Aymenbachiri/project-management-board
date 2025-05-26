@@ -8,6 +8,39 @@ import {
 } from "@prisma/client";
 import { type NextRequest, NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/boards:
+ *   get:
+ *     summary: Get all boards for authenticated user
+ *     description: Retrieves all boards that the authenticated user owns or is a member of
+ *     tags:
+ *       - Boards
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved boards
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Board'
+ *       401:
+ *         description: Unauthorized - Session missing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
 export async function GET() {
   try {
     const session = await auth();
@@ -49,6 +82,49 @@ export async function GET() {
     );
   }
 }
+
+/**
+ * @swagger
+ * /api/boards:
+ *   post:
+ *     summary: Create a new board
+ *     description: Creates a new board with default columns (To Do, In Progress, Done) and adds the creator as owner
+ *     tags:
+ *       - Boards
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateBoardRequest'
+ *     responses:
+ *       201:
+ *         description: Board created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Board'
+ *       400:
+ *         description: Invalid request data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationError'
+ *       401:
+ *         description: Unauthorized - Session missing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 
 export async function POST(req: NextRequest) {
   try {
