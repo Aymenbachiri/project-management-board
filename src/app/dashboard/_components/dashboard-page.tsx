@@ -201,7 +201,7 @@ export function DashboardPage(): JSX.Element {
   };
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-background container mx-auto min-h-screen w-full">
       <div className="border-b lg:hidden">
         <div className="flex h-16 items-center justify-between px-4">
           <h1 className="text-lg font-semibold">Project Management</h1>
@@ -247,7 +247,7 @@ export function DashboardPage(): JSX.Element {
           </Select>
         </div>
 
-        <div className="bg-muted/50 hidden h-full w-64 border-r p-4 lg:block">
+        <div className="bg-muted/50 hidden w-64 rounded-md border-r p-4 lg:block lg:h-fit">
           <h2 className="mb-4 font-semibold">Boards</h2>
           <div className="space-y-2">
             {boards.map((board) => (

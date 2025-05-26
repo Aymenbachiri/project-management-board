@@ -66,7 +66,7 @@ export function Board({
   );
 }
 
-interface BoardColumnProps {
+type BoardColumnProps = {
   column: { id: string; title: string; color: string };
   tasks: Task[];
   users: User[];
@@ -77,7 +77,7 @@ interface BoardColumnProps {
   isCreating: boolean;
   onStartCreating: () => void;
   onStopCreating: () => void;
-}
+};
 
 function BoardColumn({
   column,

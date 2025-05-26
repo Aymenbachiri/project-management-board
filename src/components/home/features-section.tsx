@@ -1,7 +1,5 @@
 "use client";
 
-import type React from "react";
-
 import { motion } from "framer-motion";
 import {
   Kanban,
@@ -25,13 +23,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { fadeInUp, staggerContainer } from "@/lib/animation/animation";
+import type { JSX } from "react";
 
-interface Feature {
+type Feature = {
   icon: React.ElementType;
   title: string;
   description: string;
   category: string;
-}
+};
 
 const features: Feature[] = [
   {
@@ -119,7 +118,7 @@ const categoryColors = {
   Analytics: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
 };
 
-export function FeaturesSection(): React.JSX.Element {
+export function FeaturesSection(): JSX.Element {
   return (
     <section id="features" className="bg-muted/30 py-24">
       <div className="container mx-auto px-4">

@@ -205,7 +205,7 @@ export function Analytics({ tasks }: AnalyticsProps): JSX.Element {
                   color: "var(--chart-1)",
                 },
               }}
-              className="h-[250px] lg:h-[300px]"
+              className="h-[250px] w-full md:w-[450px] lg:h-[300px] lg:w-full"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={priorityData}>
