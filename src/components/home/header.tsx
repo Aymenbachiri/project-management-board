@@ -77,6 +77,9 @@ export function Header({ session }: HeaderProps): JSX.Element {
               >
                 Sign Out
               </Button>
+              <Button asChild variant="link" className="hidden sm:inline-flex">
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
             </>
           ) : (
             <Button variant="ghost" className="hidden sm:inline-flex" asChild>
@@ -112,6 +115,13 @@ export function Header({ session }: HeaderProps): JSX.Element {
                       <User />
                       <h2>{session?.user?.name}</h2>
                     </div>
+                    <Button
+                      asChild
+                      variant="link"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <Link href="/dashboard">Dashboard</Link>
+                    </Button>
                     <Button variant="destructive" onClick={() => signOut()}>
                       Sign Out
                     </Button>
