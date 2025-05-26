@@ -20,7 +20,7 @@ export async function Providers({
         <Header session={session} />
         <NextTopLoader color="red" />
         <LenisProvider />
-        <Toaster richColors position="top-right" />
+        <Toaster richColors position="top-right" closeButton />
         {children}
       </ThemeProvider>
     </SessionProvider>
