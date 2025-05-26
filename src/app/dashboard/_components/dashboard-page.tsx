@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, type JSX, useEffect } from "react";
+import { useState, useMemo, type JSX } from "react";
 import {
   DndContext,
   type DragEndEvent,
@@ -17,7 +17,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, BarChart3 } from "lucide-react";
 import type { Priority, Task, TaskStatus } from "../_lib/types";
-import { mockBoards, mockTasks, mockUsers } from "../_lib/mock-data";
+import { mockTasks, mockUsers } from "../_lib/mock-data";
 import { toast } from "sonner";
 import { Analytics } from "./analytics";
 import { CreateBoardDialog } from "./create-board-dialog";
@@ -33,8 +33,11 @@ import {
 import { cn } from "@/lib/utils";
 import { Board as BoardType } from "@prisma/client";
 
-export function DashboardPage(): JSX.Element {
-  const [boards, setBoards] = useState<BoardType[]>(mockBoards);
+type DashboardPageProps = {
+  boards: BoardType[] | undefined;
+};
+
+export function DashboardPage({ boards }: DashboardPageProps): JSX.Element {
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [activeBoard, setActiveBoard] = useState<string>(boards[0]?.id || "");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -56,23 +59,6 @@ export function DashboardPage(): JSX.Element {
       },
     }),
   );
-
-  // async function getBoards() {
-  //   try {
-  //     const res = await fetch("/api/boards");
-  //     console.log("res: ", res);
-
-  //     const boards = await res.json();
-  //     console.log("boards: ", boards);
-  //     setBoards(boards);
-  //   } catch (error) {
-  //     console.error("error fetch boards", error);
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   getBoards();
-  // }, []);
 
   const currentBoard = boards?.find((board) => board.id === activeBoard);
   const boardTasks = tasks.filter((task) => task.boardId === activeBoard);
@@ -163,7 +149,7 @@ export function DashboardPage(): JSX.Element {
   };
 
   const handleCreateBoard = (board: BoardType) => {
-    setBoards((prev) => [...prev, board]);
+    // setBoards((prev) => [...prev, board]);
     setActiveBoard(board.id);
   };
 
@@ -239,7 +225,7 @@ export function DashboardPage(): JSX.Element {
               <SelectValue placeholder="Select a board" />
             </SelectTrigger>
             <SelectContent>
-              {boards.map((board) => (
+              {boards?.map((board) => (
                 <SelectItem key={board.id} value={board.id}>
                   {board.name}
                 </SelectItem>
@@ -251,7 +237,7 @@ export function DashboardPage(): JSX.Element {
         <div className="bg-muted/50 hidden w-64 rounded-md border-r p-4 lg:block lg:h-fit">
           <h2 className="mb-4 font-semibold">Boards</h2>
           <div className="space-y-2">
-            {boards.map((board) => (
+            {boards?.map((board) => (
               <Card
                 key={board.id}
                 className={cn(
@@ -262,7 +248,7 @@ export function DashboardPage(): JSX.Element {
                 )}
                 onClick={() => setActiveBoard(board.id)}
               >
-                <CardHeader className="p-3">
+                <CardHeader>
                   <CardTitle className="text-sm">{board.name}</CardTitle>
                 </CardHeader>
               </Card>

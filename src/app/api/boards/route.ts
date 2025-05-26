@@ -21,12 +21,18 @@ export async function GET() {
 
     const ownedBoards = await prisma.board.findMany({
       where: { ownerId: userId },
-      include: { members: true },
+      include: {
+        columns: { include: { tasks: true }, orderBy: { order: "asc" } },
+        members: true,
+      },
     });
 
     const memberBoards = await prisma.board.findMany({
       where: { members: { some: { userId } } },
-      include: { members: true },
+      include: {
+        columns: { include: { tasks: true }, orderBy: { order: "asc" } },
+        members: true,
+      },
     });
 
     const allBoards = [...ownedBoards, ...memberBoards].filter(
