@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX, useState } from "react";
+import { type JSX } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,13 +11,30 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Board } from "@prisma/client";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  createBoardSchema,
+  type CreateBoardInput,
+} from "@/lib/validation/board";
+import { createBoard } from "@/lib/helpers/create-board";
+import { toast } from "sonner";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Loader2 } from "lucide-react";
 
 type CreateBoardDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreateBoard: (name: string, description: string) => void;
+  onCreateBoard: (board: Board) => void;
 };
 
 export function CreateBoardDialog({
@@ -25,17 +42,35 @@ export function CreateBoardDialog({
   onOpenChange,
   onCreateBoard,
 }: CreateBoardDialogProps): JSX.Element {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const form = useForm<CreateBoardInput>({
+    resolver: zodResolver(createBoardSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (name.trim()) {
-      onCreateBoard(name.trim(), description.trim());
-      setName("");
-      setDescription("");
+  const isSubmitting = form.formState.isSubmitting;
+
+  const onSubmit = async (data: CreateBoardInput) => {
+    try {
+      const newBoard = await createBoard(data);
+      onCreateBoard(newBoard);
+      form.reset();
       onOpenChange(false);
+      toast.success("Board created successfully!");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to create board",
+      );
     }
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && !isSubmitting) {
+      form.reset();
+    }
+    onOpenChange(newOpen);
   };
 
   return (
@@ -47,40 +82,62 @@ export function CreateBoardDialog({
             Create a new project board to organize your tasks.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Board Name</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter board name"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Enter board description (optional)"
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit">Create Board</Button>
-          </DialogFooter>
-        </form>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Board Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter board name"
+                      disabled={isSubmitting}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter board description (optional)"
+                      rows={3}
+                      disabled={isSubmitting}
+                      className="resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleOpenChange(false)}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="animate-spin" />}
+                Create Board
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

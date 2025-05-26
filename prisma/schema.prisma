@@ -101,11 +101,31 @@ model Board {
   updatedAt DateTime @updatedAt
 }
 
+enum BoardColumnId {
+  todo
+  in_progress
+  done
+}
+
+enum BoardColumnTitle {
+  To_Do
+  In_Progress
+  Done
+}
+
+enum BoardColumnColor {
+  Red // #ef4444
+  Orange // #f59e0b
+  Green // #10b981
+}
+
 model BoardColumn {
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
-  title String
-  color String
-  order Int
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  columnId BoardColumnId
+  title    BoardColumnTitle
+  color    BoardColumnColor
+  order    Int
 
   boardId String @db.ObjectId
   board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)

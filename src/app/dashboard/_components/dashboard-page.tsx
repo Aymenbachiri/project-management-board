@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, type JSX } from "react";
+import { useState, useMemo, type JSX, useEffect } from "react";
 import {
   DndContext,
   type DragEndEvent,
@@ -16,12 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, BarChart3 } from "lucide-react";
-import type {
-  Priority,
-  Task,
-  TaskStatus,
-  Board as BoardType,
-} from "../_lib/types";
+import type { Priority, Task, TaskStatus } from "../_lib/types";
 import { mockBoards, mockTasks, mockUsers } from "../_lib/mock-data";
 import { toast } from "sonner";
 import { Analytics } from "./analytics";
@@ -36,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { Board as BoardType } from "@prisma/client";
 
 export function DashboardPage(): JSX.Element {
   const [boards, setBoards] = useState<BoardType[]>(mockBoards);
@@ -61,7 +57,24 @@ export function DashboardPage(): JSX.Element {
     }),
   );
 
-  const currentBoard = boards.find((board) => board.id === activeBoard);
+  // async function getBoards() {
+  //   try {
+  //     const res = await fetch("/api/boards");
+  //     console.log("res: ", res);
+
+  //     const boards = await res.json();
+  //     console.log("boards: ", boards);
+  //     setBoards(boards);
+  //   } catch (error) {
+  //     console.error("error fetch boards", error);
+  //   }
+  // }
+
+  // useEffect(() => {
+  //   getBoards();
+  // }, []);
+
+  const currentBoard = boards?.find((board) => board.id === activeBoard);
   const boardTasks = tasks.filter((task) => task.boardId === activeBoard);
 
   const filteredTasks = useMemo(() => {
@@ -149,21 +162,9 @@ export function DashboardPage(): JSX.Element {
     toast.success("Task moved successfully");
   };
 
-  const createBoard = (name: string, description: string) => {
-    const newBoard: BoardType = {
-      id: `board-${Date.now()}`,
-      name,
-      description,
-      columns: [
-        { id: "todo", title: "To Do", color: "#ef4444" },
-        { id: "in-progress", title: "In Progress", color: "#f59e0b" },
-        { id: "done", title: "Done", color: "#10b981" },
-      ],
-      createdAt: new Date().toISOString(),
-    };
-    setBoards((prev) => [...prev, newBoard]);
-    setActiveBoard(newBoard.id);
-    toast.success("Board created successfully");
+  const handleCreateBoard = (board: BoardType) => {
+    setBoards((prev) => [...prev, board]);
+    setActiveBoard(board.id);
   };
 
   const createTask = (
@@ -339,7 +340,7 @@ export function DashboardPage(): JSX.Element {
       <CreateBoardDialog
         open={isCreateBoardOpen}
         onOpenChange={setIsCreateBoardOpen}
-        onCreateBoard={createBoard}
+        onCreateBoard={handleCreateBoard}
       />
 
       {selectedTask && (
