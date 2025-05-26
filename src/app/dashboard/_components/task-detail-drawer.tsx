@@ -104,29 +104,38 @@ export function TaskDetailDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[400px] overflow-y-auto sm:w-[540px]">
+      <SheetContent className="w-full overflow-y-auto sm:w-[400px] lg:w-[540px]">
         <SheetHeader>
-          <div className="flex items-center justify-between">
-            <SheetTitle className="text-left">
+          <div className="flex items-start justify-between gap-2">
+            <SheetTitle className="text-left text-base leading-tight lg:text-lg">
               {isEditing ? "Edit Task" : task.title}
             </SheetTitle>
-            <div className="flex space-x-2">
+            <div className="flex flex-shrink-0 space-x-1 pt-5 lg:space-x-2">
               {isEditing ? (
                 <>
-                  <Button size="sm" onClick={handleSave}>
+                  <Button
+                    size="sm"
+                    onClick={handleSave}
+                    className="text-xs lg:text-sm"
+                  >
                     Save
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => setIsEditing(false)}
+                    className="text-xs lg:text-sm"
                   >
                     Cancel
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button size="sm" onClick={() => setIsEditing(true)}>
+                  <Button
+                    size="sm"
+                    onClick={() => setIsEditing(true)}
+                    className="text-xs lg:text-sm"
+                  >
                     Edit
                   </Button>
                   <Button
@@ -134,20 +143,20 @@ export function TaskDetailDrawer({
                     variant="destructive"
                     onClick={handleDelete}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3 w-3 lg:h-4 lg:w-4" />
                   </Button>
                 </>
               )}
             </div>
           </div>
-          <SheetDescription className="text-left">
+          <SheetDescription className="text-left text-sm">
             Created {format(new Date(task.createdAt), "PPP")}
           </SheetDescription>
         </SheetHeader>
 
-        <div className="mt-6 space-y-6">
+        <div className="m-3 mt-4 space-y-4 lg:mt-6 lg:space-y-6">
           {isEditing ? (
-            <div className="space-y-4">
+            <div className="space-y-3 lg:space-y-4">
               <div className="grid gap-2">
                 <Label>Title</Label>
                 <Input
@@ -172,7 +181,7 @@ export function TaskDetailDrawer({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
                 <div className="grid gap-2">
                   <Label>Status</Label>
                   <Select
@@ -302,7 +311,7 @@ export function TaskDetailDrawer({
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 lg:space-y-4">
               <div>
                 <Label className="text-sm font-medium">Description</Label>
                 <p className="text-muted-foreground mt-1 text-sm">
@@ -310,7 +319,7 @@ export function TaskDetailDrawer({
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
                 <div>
                   <Label className="text-sm font-medium">Status</Label>
                   <p className="mt-1 text-sm capitalize">
@@ -377,21 +386,21 @@ export function TaskDetailDrawer({
           <Separator />
 
           <div>
-            <div className="mb-4 flex items-center space-x-2">
+            <div className="mb-3 flex items-center space-x-2 lg:mb-4">
               <MessageCircle className="h-4 w-4" />
               <Label className="text-sm font-medium">
                 Comments ({task.comments.length})
               </Label>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 lg:space-y-4">
               {task.comments.map((comment) => {
                 const author = users.find(
                   (user) => user.id === comment.authorId,
                 );
                 return (
                   <div key={comment.id} className="flex space-x-3">
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-7 w-7 lg:h-8 lg:w-8">
                       <AvatarImage
                         src={author?.avatar || "/placeholder.svg"}
                         alt={author?.name}
@@ -403,8 +412,8 @@ export function TaskDetailDrawer({
                           .join("") || "U"}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-2">
                         <span className="text-sm font-medium">
                           {author?.name || "Unknown User"}
                         </span>
@@ -415,7 +424,9 @@ export function TaskDetailDrawer({
                           )}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm">{comment.content}</p>
+                      <p className="mt-1 text-sm break-words">
+                        {comment.content}
+                      </p>
                     </div>
                   </div>
                 );

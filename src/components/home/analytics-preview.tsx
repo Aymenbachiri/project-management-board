@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import type { JSX } from "react";
 import { fadeInUp, staggerContainer } from "@/lib/animation/animation";
+import { cn } from "@/lib/utils";
 
 const mockAnalytics = {
   completionRate: 78,
@@ -128,9 +129,10 @@ export function AnalyticsPreview(): JSX.Element {
                       <TrendingDown className="mr-1 h-3 w-3 text-red-500" />
                     )}
                     <span
-                      className={
-                        metric.trendUp ? "text-green-500" : "text-red-500"
-                      }
+                      className={cn(
+                        "",
+                        metric.trendUp ? "text-green-500" : "text-red-500",
+                      )}
                     >
                       {metric.trend}
                     </span>

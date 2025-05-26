@@ -42,7 +42,7 @@ export function Board({
   }, [board.columns, tasks]);
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-6">
       {board.columns.map((column) => (
         <BoardColumn
           key={column.id}
@@ -114,7 +114,10 @@ function BoardColumn({
           </Button>
         </div>
       </CardHeader>
-      <CardContent ref={setNodeRef} className="min-h-[200px] space-y-3">
+      <CardContent
+        ref={setNodeRef}
+        className="min-h-[150px] space-y-2 lg:min-h-[200px] lg:space-y-3"
+      >
         <SortableContext
           items={tasks.map((task) => task.id)}
           strategy={verticalListSortingStrategy}

@@ -9,6 +9,7 @@ import { Calendar, MessageCircle, Paperclip } from "lucide-react";
 import type { Task, User } from "../_lib/types";
 import { format } from "date-fns";
 import type { JSX } from "react";
+import { cn } from "@/lib/utils";
 
 type TaskCardProps = {
   task: Task;
@@ -46,7 +47,10 @@ export function TaskCard({ task, users, onClick }: TaskCardProps): JSX.Element {
       style={style}
       {...attributes}
       {...listeners}
-      className={`cursor-pointer transition-all hover:shadow-md ${isDragging ? "opacity-50" : ""}`}
+      className={cn(
+        "cursor-pointer transition-all hover:shadow-md",
+        isDragging ? "opacity-50" : "",
+      )}
       onClick={onClick}
     >
       <CardHeader className="pb-2">

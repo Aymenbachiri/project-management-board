@@ -87,36 +87,42 @@ export function Analytics({ tasks }: AnalyticsProps): JSX.Element {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-4 lg:space-y-6">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalTasks}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Completed Tasks
+            <CardTitle className="text-xs font-medium lg:text-sm">
+              Total Tasks
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.completedTasks}</div>
+            <div className="text-lg font-bold lg:text-2xl">
+              {analytics.totalTasks}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+            <CardTitle className="text-xs font-medium lg:text-sm">
+              Completed
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold lg:text-2xl">
+              {analytics.completedTasks}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium lg:text-sm">
               Completion Rate
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-lg font-bold lg:text-2xl">
               {analytics.completionRate.toFixed(1)}%
             </div>
             <Progress value={analytics.completionRate} className="mt-2" />
@@ -125,21 +131,25 @@ export function Analytics({ tasks }: AnalyticsProps): JSX.Element {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Overdue Tasks</CardTitle>
+            <CardTitle className="text-xs font-medium lg:text-sm">
+              Overdue
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-lg font-bold text-red-600 lg:text-2xl">
               {analytics.overdueTasks}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-1 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Tasks by Status</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-base lg:text-lg">
+              Tasks by Status
+            </CardTitle>
+            <CardDescription className="text-sm">
               Distribution of tasks across different statuses
             </CardDescription>
           </CardHeader>
@@ -148,10 +158,10 @@ export function Analytics({ tasks }: AnalyticsProps): JSX.Element {
               config={{
                 value: {
                   label: "Tasks",
-                  color: "hsl(var(--chart-1))",
+                  color: "var(--chart-1)",
                 },
               }}
-              className="h-[300px]"
+              className="h-[250px] lg:h-[300px]"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -163,7 +173,7 @@ export function Analytics({ tasks }: AnalyticsProps): JSX.Element {
                     label={({ name, percent }) =>
                       `${name} ${(percent * 100).toFixed(0)}%`
                     }
-                    outerRadius={80}
+                    outerRadius={60}
                     fill="#8884d8"
                     dataKey="value"
                   >
@@ -180,18 +190,22 @@ export function Analytics({ tasks }: AnalyticsProps): JSX.Element {
 
         <Card>
           <CardHeader>
-            <CardTitle>Tasks by Priority</CardTitle>
-            <CardDescription>Number of tasks by priority level</CardDescription>
+            <CardTitle className="text-base lg:text-lg">
+              Tasks by Priority
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Number of tasks by priority level
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer
               config={{
                 value: {
                   label: "Tasks",
-                  color: "hsl(var(--chart-1))",
+                  color: "var(--chart-1)",
                 },
               }}
-              className="h-[300px]"
+              className="h-[250px] lg:h-[300px]"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={priorityData}>
@@ -199,7 +213,7 @@ export function Analytics({ tasks }: AnalyticsProps): JSX.Element {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" fill="hsl(var(--chart-1))" />
+                  <Bar dataKey="value" fill="var(--chart-1)" />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
