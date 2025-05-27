@@ -1,9 +1,8 @@
-import { API_URL } from "../utils/env";
 import type { CreateBoardInput } from "../validation/board";
 
 export async function createBoard(data: CreateBoardInput) {
   try {
-    const response = await fetch(`${API_URL}/api/boards`, {
+    const response = await fetch(`/api/boards`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
