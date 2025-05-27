@@ -55,16 +55,18 @@ export async function GET() {
     const ownedBoards = await prisma.board.findMany({
       where: { ownerId: userId },
       include: {
-        columns: { include: { tasks: true }, orderBy: { order: "asc" } },
+        columns: true,
         members: true,
+        tasks: true,
       },
     });
 
     const memberBoards = await prisma.board.findMany({
       where: { members: { some: { userId } } },
       include: {
-        columns: { include: { tasks: true }, orderBy: { order: "asc" } },
+        columns: true,
         members: true,
+        tasks: true,
       },
     });
 

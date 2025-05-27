@@ -16,8 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, BarChart3 } from "lucide-react";
-import type { Priority, Task, TaskStatus } from "../_lib/types";
-import { mockTasks, mockUsers } from "../_lib/mock-data";
+import type { Priority } from "../_lib/types";
+import { mockUsers } from "../_lib/mock-data";
 import { toast } from "sonner";
 import { Analytics } from "./analytics";
 import { CreateBoardDialog } from "./create-board-dialog";
@@ -31,15 +31,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { Board as BoardType } from "@prisma/client";
+import {
+  BoardColumnId,
+  Board as BoardType,
+  Task,
+  TaskStatus,
+  User,
+} from "@prisma/client";
+import { CreateTaskInput } from "@/lib/validation/task";
+import { createBoardTask } from "@/lib/helpers/create-task";
 
 type DashboardPageProps = {
   boards: BoardType[] | undefined;
+  tasks: Task[] | undefined;
+  users: User[] | undefined;
 };
 
-export function DashboardPage({ boards }: DashboardPageProps): JSX.Element {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
-  const [activeBoard, setActiveBoard] = useState<string>(boards[0]?.id || "");
+export function DashboardPage({
+  boards,
+  tasks: initialTasks,
+  users,
+}: DashboardPageProps): JSX.Element {
+  console.log("boards: ", boards);
+
+  const [tasks, setTasks] = useState<Task[]>(initialTasks || []);
+  const [activeBoard, setActiveBoard] = useState(
+    boards && boards.length > 0 ? boards[0].id : "",
+  );
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isCreateBoardOpen, setIsCreateBoardOpen] = useState(false);
   const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false);
@@ -61,10 +79,10 @@ export function DashboardPage({ boards }: DashboardPageProps): JSX.Element {
   );
 
   const currentBoard = boards?.find((board) => board.id === activeBoard);
-  const boardTasks = tasks.filter((task) => task.boardId === activeBoard);
+  const boardTasks = tasks?.filter((task) => task.boardId === activeBoard);
 
   const filteredTasks = useMemo(() => {
-    return boardTasks.filter((task) => {
+    return boardTasks?.filter((task) => {
       if (filters.assignee && task.assigneeId !== filters.assignee)
         return false;
       if (
@@ -97,16 +115,16 @@ export function DashboardPage({ boards }: DashboardPageProps): JSX.Element {
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    const activeTask = tasks.find((task) => task.id === activeId);
+    const activeTask = tasks?.find((task) => task.id === activeId);
     if (!activeTask) return;
 
     // Check if we're hovering over a column
     const overColumn = currentBoard?.columns.find((col) => col.id === overId);
-    if (overColumn && activeTask.status !== overColumn.id) {
+    if (overColumn && activeTask.status !== overColumn.columnId) {
       setTasks((prev) =>
         prev.map((task) =>
           task.id === activeId
-            ? { ...task, status: overColumn.id as TaskStatus }
+            ? { ...task, status: overColumn.columnId as TaskStatus }
             : task,
         ),
       );
@@ -120,18 +138,18 @@ export function DashboardPage({ boards }: DashboardPageProps): JSX.Element {
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    const activeTask = tasks.find((task) => task.id === activeId);
-    const overTask = tasks.find((task) => task.id === overId);
+    const activeTask = tasks?.find((task) => task.id === activeId);
+    const overTask = tasks?.find((task) => task.id === overId);
 
     if (!activeTask) return;
 
     // If dropped on another task, reorder within the same column
     if (overTask && activeTask.status === overTask.status) {
-      const columnTasks = filteredTasks.filter(
+      const columnTasks = filteredTasks?.filter(
         (task) => task.status === activeTask.status,
       );
-      const oldIndex = columnTasks.findIndex((task) => task.id === activeId);
-      const newIndex = columnTasks.findIndex((task) => task.id === overId);
+      const oldIndex = columnTasks?.findIndex((task) => task.id === activeId);
+      const newIndex = columnTasks?.findIndex((task) => task.id === overId);
 
       if (oldIndex !== newIndex) {
         const reorderedTasks = arrayMove(columnTasks, oldIndex, newIndex);
@@ -153,17 +171,107 @@ export function DashboardPage({ boards }: DashboardPageProps): JSX.Element {
     setActiveBoard(board.id);
   };
 
-  const createTask = (
-    taskData: Omit<Task, "id" | "createdAt" | "updatedAt">,
-  ) => {
-    const newTask: Task = {
-      ...taskData,
-      id: `task-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+  const mapTaskStatusToColumnId = (status: TaskStatus): BoardColumnId => {
+    const mapping: Record<TaskStatus, BoardColumnId> = {
+      todo: "todo" as BoardColumnId,
+      in_progress: "in_progress" as BoardColumnId,
+      done: "done" as BoardColumnId,
     };
-    setTasks((prev) => [...prev, newTask]);
-    toast.success("Task created successfully");
+    return mapping[status];
+  };
+
+  const createTask = async (taskData: CreateTaskInput) => {
+    try {
+      console.log("Creating task with data:", taskData);
+      console.log("Task status type:", typeof taskData.status);
+      console.log("Task status value:", taskData.status);
+
+      if (!currentBoard) {
+        toast.error("Please select a board first");
+        return;
+      }
+
+      // Check if status is actually an ObjectId (which shouldn't happen)
+      if (
+        typeof taskData.status === "string" &&
+        taskData.status.length === 24
+      ) {
+        console.error(
+          "Status appears to be an ObjectId instead of enum value:",
+          taskData.status,
+        );
+
+        // Try to find the column by ID and get its status
+        const columnById = currentBoard.columns.find(
+          (col) => col.id === taskData.status,
+        );
+        if (columnById) {
+          console.log(
+            "Found column by ID, using its columnId:",
+            columnById.columnId,
+          );
+          taskData.status = columnById.columnId as TaskStatus;
+        } else {
+          toast.error("Invalid status provided");
+          return;
+        }
+      }
+
+      // Map the task status to column ID format (should be the same now)
+      const columnIdToFind = mapTaskStatusToColumnId(taskData.status);
+
+      console.log("Looking for column with columnId:", columnIdToFind);
+      console.log(
+        "Available columns:",
+        currentBoard.columns.map((col) => ({
+          id: col.id,
+          columnId: col.columnId,
+          title: col.title,
+        })),
+      );
+
+      // Find the column for this task to get columnId
+      const column = currentBoard.columns.find(
+        (col) => col.columnId === columnIdToFind,
+      );
+
+      if (!column) {
+        console.error("Column not found for status:", taskData.status);
+        console.error("Mapped columnId:", columnIdToFind);
+        toast.error("Column not found for the selected status");
+        return;
+      }
+
+      console.log("Found column:", column);
+
+      const createTaskInput: CreateTaskInput = {
+        title: taskData.title,
+        description: taskData.description as string,
+        status: taskData.status,
+        priority: taskData.priority,
+        dueDate: taskData.dueDate
+          ? new Date(taskData.dueDate).toISOString()
+          : undefined,
+        assigneeId: taskData.assigneeId as string,
+        // assigneeId: "683316dcfabc9c088470ea3f",
+        tags: taskData.tags,
+        columnId: column.id,
+        order: taskData.order || 0,
+      };
+
+      console.log("Final createTaskInput:", createTaskInput);
+
+      // Pass the boardId to the createBoardTask function
+      const newTask = await createBoardTask(createTaskInput, currentBoard.id);
+
+      if (newTask) {
+        setTasks((prev) => [...prev, newTask]);
+        toast.success("Task created successfully");
+      }
+    } catch (error) {
+      console.error("Failed to create task:", error);
+      toast.error("Failed to create task");
+    }
   };
 
   const updateTask = (taskId: string, updates: Partial<Task>) => {
@@ -305,7 +413,7 @@ export function DashboardPage({ boards }: DashboardPageProps): JSX.Element {
                     <Board
                       board={currentBoard}
                       tasks={filteredTasks}
-                      users={mockUsers}
+                      users={users as User[]}
                       onTaskClick={openTaskDetail}
                       onCreateTask={createTask}
                     />

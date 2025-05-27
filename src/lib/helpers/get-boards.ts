@@ -6,7 +6,7 @@ type getBoardsReturn = Promise<Board[] | undefined>;
 
 export async function getBoards(): getBoardsReturn {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const response = await fetch(`${API_URL}/api/boards`, {
       headers: { Cookie: cookieStore.toString() },
     });
@@ -20,5 +20,6 @@ export async function getBoards(): getBoardsReturn {
     return boards;
   } catch (error) {
     console.error("failed to get board: ", error);
+    throw error;
   }
 }

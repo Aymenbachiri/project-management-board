@@ -155,9 +155,9 @@ model BoardMember {
 }
 
 enum TaskStatus {
-  TODO
-  IN_PROGRESS
-  DONE
+  todo
+  in_progress
+  done
 }
 
 enum Priority {

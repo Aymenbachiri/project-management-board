@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar, MessageCircle, Paperclip } from "lucide-react";
-import type { Task, User } from "../_lib/types";
 import { format } from "date-fns";
 import type { JSX } from "react";
 import { cn } from "@/lib/utils";
+import { Task, User } from "@prisma/client";
 
 type TaskCardProps = {
   task: Task;
@@ -35,10 +35,10 @@ export function TaskCard({ task, users, onClick }: TaskCardProps): JSX.Element {
   const assignee = users.find((user) => user.id === task.assigneeId);
 
   const priorityColors = {
-    low: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-    medium:
+    LOW: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+    MEDIUM:
       "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-    high: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+    HIGH: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
   };
 
   return (
@@ -101,11 +101,11 @@ export function TaskCard({ task, users, onClick }: TaskCardProps): JSX.Element {
           {assignee && (
             <Avatar className="h-6 w-6">
               <AvatarImage
-                src={assignee.avatar || "/placeholder.svg"}
-                alt={assignee.name}
+                src={"/placeholder.svg"}
+                alt={assignee?.name as string}
               />
               <AvatarFallback className="text-xs">
-                {assignee.name
+                {assignee?.name
                   .split(" ")
                   .map((n) => n[0])
                   .join("")}

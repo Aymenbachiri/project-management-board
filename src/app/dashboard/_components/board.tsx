@@ -11,15 +11,16 @@ import { CreateTaskDialog } from "./create-task-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import type { Board as BoardType, Task, TaskStatus, User } from "../_lib/types";
 import { useState } from "react";
+import { Task, User, Board as BoardType, TaskStatus } from "@prisma/client";
+import { CreateTaskInput } from "@/lib/validation/task";
 
 type BoardProps = {
   board: BoardType;
   tasks: Task[];
   users: User[];
   onTaskClick: (task: Task) => void;
-  onCreateTask: (task: Omit<Task, "id" | "createdAt" | "updatedAt">) => void;
+  onCreateTask: (task: CreateTaskInput) => void;
 };
 
 export function Board({
@@ -71,9 +72,7 @@ type BoardColumnProps = {
   tasks: Task[];
   users: User[];
   onTaskClick: (task: Task) => void;
-  onCreateTask: (
-    task: Omit<Task, "id" | "createdAt" | "updatedAt" | "boardId" | "status">,
-  ) => void;
+  onCreateTask: (task: CreateTaskInput) => void;
   isCreating: boolean;
   onStartCreating: () => void;
   onStopCreating: () => void;
@@ -138,6 +137,7 @@ function BoardColumn({
           onCreateTask={onCreateTask}
           users={users}
           defaultStatus={column.id as TaskStatus}
+          columnId={column.id}
         />
       </CardContent>
     </Card>
