@@ -18,7 +18,9 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Filter, X } from "lucide-react";
-import type { Task, User, Priority, TaskStatus } from "../_lib/types";
+import { Priority } from "../_lib/types";
+import { TaskStatus } from "@prisma/client";
+import { Task, User } from "@/lib/types/types";
 
 type Filters = {
   assignee: string;

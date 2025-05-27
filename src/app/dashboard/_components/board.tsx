@@ -12,15 +12,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { Task, User, Board as BoardType, TaskStatus } from "@prisma/client";
 import { CreateTaskInput } from "@/lib/validation/task";
+import { Task, User, Board as BoardType, TaskStatus } from "@/lib/types/types";
 
 type BoardProps = {
   board: BoardType;
   tasks: Task[];
   users: User[];
   onTaskClick: (task: Task) => void;
-  onCreateTask: (task: CreateTaskInput) => void;
+  onCreateTask: (
+    taskData: Omit<Task, "id" | "createdAt" | "updatedAt">,
+  ) => Promise<void>;
 };
 
 export function Board({

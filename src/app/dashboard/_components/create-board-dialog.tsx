@@ -34,7 +34,7 @@ import { Loader2 } from "lucide-react";
 type CreateBoardDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreateBoard: (board: Board) => void;
+  onCreateBoard: (name: string, description: string) => Promise<void>;
 };
 
 export function CreateBoardDialog({

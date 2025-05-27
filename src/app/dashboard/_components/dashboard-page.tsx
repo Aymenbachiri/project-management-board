@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, type JSX } from "react";
+import { useState, useMemo, type JSX, useEffect } from "react";
 import {
   DndContext,
   type DragEndEvent,
@@ -15,9 +15,8 @@ import { TaskFilters } from "./task-filters";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, BarChart3 } from "lucide-react";
+import { Plus, BarChart3, Loader2 } from "lucide-react";
 import type { Priority } from "../_lib/types";
-import { mockUsers } from "../_lib/mock-data";
 import { toast } from "sonner";
 import { Analytics } from "./analytics";
 import { CreateBoardDialog } from "./create-board-dialog";
@@ -30,16 +29,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 import {
-  BoardColumnId,
-  Board as BoardType,
+  getColumnConfig,
+  getPriorityDisplay,
   Task,
-  TaskStatus,
   User,
-} from "@prisma/client";
-import { CreateTaskInput } from "@/lib/validation/task";
-import { createBoardTask } from "@/lib/helpers/create-task";
+  Board as BoardType,
+  TaskStatus,
+} from "@/lib/types/types";
+import { cn } from "@/lib/utils";
 
 type DashboardPageProps = {
   boards: BoardType[] | undefined;
@@ -47,21 +45,16 @@ type DashboardPageProps = {
   users: User[] | undefined;
 };
 
-export function DashboardPage({
-  boards,
-  tasks: initialTasks,
-  users,
-}: DashboardPageProps): JSX.Element {
-  console.log("boards: ", boards);
-
-  const [tasks, setTasks] = useState<Task[]>(initialTasks || []);
-  const [activeBoard, setActiveBoard] = useState(
-    boards && boards.length > 0 ? boards[0].id : "",
-  );
+export function DashboardPage({}: DashboardPageProps): JSX.Element {
+  const [boards, setBoards] = useState<BoardType[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [activeBoard, setActiveBoard] = useState<string>("");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isCreateBoardOpen, setIsCreateBoardOpen] = useState(false);
   const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("board");
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     assignee: "",
     tags: [] as string[],
@@ -78,11 +71,80 @@ export function DashboardPage({
     }),
   );
 
-  const currentBoard = boards?.find((board) => board.id === activeBoard);
-  const boardTasks = tasks?.filter((task) => task.boardId === activeBoard);
+  // Load initial data
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [boardsRes, usersRes] = await Promise.all([
+        fetch("/api/boards"),
+        fetch("/api/users"),
+      ]);
+
+      if (boardsRes.ok && usersRes.ok) {
+        const boardsData = await boardsRes.json();
+        const usersData = await usersRes.json();
+
+        setBoards(
+          boardsData.map((board: BoardType) => ({
+            ...board,
+            columns: [
+              getColumnConfig("todo"),
+              getColumnConfig("in_progress"),
+              getColumnConfig("done"),
+            ],
+          })),
+        );
+        setUsers(
+          usersData.map((user: User) => ({
+            ...user,
+            avatar: user.image,
+          })),
+        );
+
+        if (boardsData.length > 0) {
+          setActiveBoard(boardsData[0].id);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading data:", error);
+      toast.error("Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeBoard) {
+      loadTasks(activeBoard);
+    }
+  }, [activeBoard]);
+
+  const loadTasks = async (boardId: string) => {
+    try {
+      const response = await fetch(`/api/boards/${boardId}/tasks`);
+      if (response.ok) {
+        const tasksData = await response.json();
+        setTasks(
+          tasksData.map((task: Task) => ({
+            ...task,
+            priority: getPriorityDisplay(task.priority),
+          })),
+        );
+      }
+    } catch (error) {
+      console.error("Error loading tasks:", error);
+    }
+  };
+
+  const currentBoard = boards.find((board) => board.id === activeBoard);
+  const boardTasks = tasks.filter((task) => task.boardId === activeBoard);
 
   const filteredTasks = useMemo(() => {
-    return boardTasks?.filter((task) => {
+    return boardTasks.filter((task) => {
       if (filters.assignee && task.assigneeId !== filters.assignee)
         return false;
       if (
@@ -115,185 +177,181 @@ export function DashboardPage({
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    const activeTask = tasks?.find((task) => task.id === activeId);
+    const activeTask = tasks.find((task) => task.id === activeId);
     if (!activeTask) return;
 
     // Check if we're hovering over a column
     const overColumn = currentBoard?.columns.find((col) => col.id === overId);
-    if (overColumn && activeTask.status !== overColumn.columnId) {
+    if (overColumn && activeTask.status !== overColumn.id) {
       setTasks((prev) =>
         prev.map((task) =>
           task.id === activeId
-            ? { ...task, status: overColumn.columnId as TaskStatus }
+            ? { ...task, status: overColumn.id as TaskStatus }
             : task,
         ),
       );
     }
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
 
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    const activeTask = tasks?.find((task) => task.id === activeId);
-    const overTask = tasks?.find((task) => task.id === overId);
+    const activeTask = tasks.find((task) => task.id === activeId);
+    const overTask = tasks.find((task) => task.id === overId);
 
     if (!activeTask) return;
 
-    // If dropped on another task, reorder within the same column
-    if (overTask && activeTask.status === overTask.status) {
-      const columnTasks = filteredTasks?.filter(
-        (task) => task.status === activeTask.status,
-      );
-      const oldIndex = columnTasks?.findIndex((task) => task.id === activeId);
-      const newIndex = columnTasks?.findIndex((task) => task.id === overId);
-
-      if (oldIndex !== newIndex) {
-        const reorderedTasks = arrayMove(columnTasks, oldIndex, newIndex);
-        setTasks((prev) => {
-          const otherTasks = prev.filter(
-            (task) =>
-              task.status !== activeTask.status || task.boardId !== activeBoard,
-          );
-          return [...otherTasks, ...reorderedTasks];
-        });
-      }
-    }
-
-    toast.success("Task moved successfully");
-  };
-
-  const handleCreateBoard = (board: BoardType) => {
-    // setBoards((prev) => [...prev, board]);
-    setActiveBoard(board.id);
-  };
-
-  const mapTaskStatusToColumnId = (status: TaskStatus): BoardColumnId => {
-    const mapping: Record<TaskStatus, BoardColumnId> = {
-      todo: "todo" as BoardColumnId,
-      in_progress: "in_progress" as BoardColumnId,
-      done: "done" as BoardColumnId,
-    };
-    return mapping[status];
-  };
-
-  const createTask = async (taskData: CreateTaskInput) => {
     try {
-      console.log("Creating task with data:", taskData);
-      console.log("Task status type:", typeof taskData.status);
-      console.log("Task status value:", taskData.status);
+      // Update task status in database
+      await fetch(`/api/tasks/${activeId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: activeTask.status }),
+      });
 
-      if (!currentBoard) {
-        toast.error("Please select a board first");
-        return;
-      }
-
-      // Check if status is actually an ObjectId (which shouldn't happen)
-      if (
-        typeof taskData.status === "string" &&
-        taskData.status.length === 24
-      ) {
-        console.error(
-          "Status appears to be an ObjectId instead of enum value:",
-          taskData.status,
+      // If dropped on another task, reorder within the same column
+      if (overTask && activeTask.status === overTask.status) {
+        const columnTasks = filteredTasks.filter(
+          (task) => task.status === activeTask.status,
         );
+        const oldIndex = columnTasks.findIndex((task) => task.id === activeId);
+        const newIndex = columnTasks.findIndex((task) => task.id === overId);
 
-        // Try to find the column by ID and get its status
-        const columnById = currentBoard.columns.find(
-          (col) => col.id === taskData.status,
-        );
-        if (columnById) {
-          console.log(
-            "Found column by ID, using its columnId:",
-            columnById.columnId,
-          );
-          taskData.status = columnById.columnId as TaskStatus;
-        } else {
-          toast.error("Invalid status provided");
-          return;
+        if (oldIndex !== newIndex) {
+          const reorderedTasks = arrayMove(columnTasks, oldIndex, newIndex);
+          setTasks((prev) => {
+            const otherTasks = prev.filter(
+              (task) =>
+                task.status !== activeTask.status ||
+                task.boardId !== activeBoard,
+            );
+            return [...otherTasks, ...reorderedTasks];
+          });
         }
       }
 
-      // Map the task status to column ID format (should be the same now)
-      const columnIdToFind = mapTaskStatusToColumnId(taskData.status);
+      toast.success("Task moved successfully");
+    } catch (error) {
+      console.error("Error updating task:", error);
+      toast.error("Failed to move task");
+    }
+  };
 
-      console.log("Looking for column with columnId:", columnIdToFind);
-      console.log(
-        "Available columns:",
-        currentBoard.columns.map((col) => ({
-          id: col.id,
-          columnId: col.columnId,
-          title: col.title,
-        })),
-      );
+  const createBoard = async (name: string, description: string) => {
+    try {
+      const response = await fetch("/api/boards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, description }),
+      });
 
-      // Find the column for this task to get columnId
-      const column = currentBoard.columns.find(
-        (col) => col.columnId === columnIdToFind,
-      );
-
-      if (!column) {
-        console.error("Column not found for status:", taskData.status);
-        console.error("Mapped columnId:", columnIdToFind);
-        toast.error("Column not found for the selected status");
-        return;
+      if (response.ok) {
+        const newBoard = await response.json();
+        const boardWithColumns = {
+          ...newBoard,
+          columns: [
+            getColumnConfig("todo"),
+            getColumnConfig("in_progress"),
+            getColumnConfig("done"),
+          ],
+        };
+        setBoards((prev) => [...prev, boardWithColumns]);
+        setActiveBoard(newBoard.id);
+        toast.success("Board created successfully");
       }
+    } catch (error) {
+      console.error("Error creating board:", error);
+      toast.error("Failed to create board");
+    }
+  };
 
-      console.log("Found column:", column);
+  const createTask = async (
+    taskData: Omit<Task, "id" | "createdAt" | "updatedAt">,
+  ) => {
+    try {
+      const response = await fetch(`/api/boards/${activeBoard}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(taskData),
+      });
 
-      const createTaskInput: CreateTaskInput = {
-        title: taskData.title,
-        description: taskData.description as string,
-        status: taskData.status,
-        priority: taskData.priority,
-        dueDate: taskData.dueDate
-          ? new Date(taskData.dueDate).toISOString()
-          : undefined,
-        assigneeId: taskData.assigneeId as string,
-        // assigneeId: "683316dcfabc9c088470ea3f",
-        tags: taskData.tags,
-        columnId: column.id,
-        order: taskData.order || 0,
-      };
-
-      console.log("Final createTaskInput:", createTaskInput);
-
-      // Pass the boardId to the createBoardTask function
-      const newTask = await createBoardTask(createTaskInput, currentBoard.id);
-
-      if (newTask) {
-        setTasks((prev) => [...prev, newTask]);
+      if (response.ok) {
+        const newTask = await response.json();
+        const taskWithDisplayPriority = {
+          ...newTask,
+          priority: getPriorityDisplay(newTask.priority),
+        };
+        setTasks((prev) => [...prev, taskWithDisplayPriority]);
         toast.success("Task created successfully");
       }
     } catch (error) {
-      console.error("Failed to create task:", error);
+      console.error("Error creating task:", error);
       toast.error("Failed to create task");
     }
   };
 
-  const updateTask = (taskId: string, updates: Partial<Task>) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === taskId
-          ? { ...task, ...updates, updatedAt: new Date().toISOString() }
-          : task,
-      ),
-    );
-    toast.success("Task updated successfully");
+  const updateTask = async (taskId: string, updates: Partial<Task>) => {
+    try {
+      const response = await fetch(`/api/boards/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+
+      if (response.ok) {
+        const updatedTask = await response.json();
+        const taskWithDisplayPriority = {
+          ...updatedTask,
+          priority: getPriorityDisplay(updatedTask.priority),
+        };
+        setTasks((prev) =>
+          prev.map((task) =>
+            task.id === taskId ? taskWithDisplayPriority : task,
+          ),
+        );
+        toast.success("Task updated successfully");
+      }
+    } catch (error) {
+      console.error("Error updating task:", error);
+      toast.error("Failed to update task");
+    }
   };
 
-  const deleteTask = (taskId: string) => {
-    setTasks((prev) => prev.filter((task) => task.id !== taskId));
-    toast.success("Task deleted successfully");
+  const deleteTask = async (taskId: string) => {
+    try {
+      const response = await fetch(`/api/boards/tasks/${taskId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setTasks((prev) => prev.filter((task) => task.id !== taskId));
+        toast.success("Task deleted successfully");
+      }
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      toast.error("Failed to delete task");
+    }
   };
 
   const openTaskDetail = (task: Task) => {
     setSelectedTask(task);
     setIsTaskDetailOpen(true);
   };
+
+  if (loading) {
+    return (
+      <div className="bg-background flex min-h-screen items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background container mx-auto min-h-screen w-full">
@@ -397,7 +455,7 @@ export function DashboardPage({
                     <TaskFilters
                       filters={filters}
                       onFiltersChange={setFilters}
-                      users={mockUsers}
+                      users={users}
                       tasks={boardTasks}
                     />
                   </div>
@@ -434,13 +492,13 @@ export function DashboardPage({
       <CreateBoardDialog
         open={isCreateBoardOpen}
         onOpenChange={setIsCreateBoardOpen}
-        onCreateBoard={handleCreateBoard}
+        onCreateBoard={createBoard}
       />
 
       {selectedTask && (
         <TaskDetailDrawer
           task={selectedTask}
-          users={mockUsers}
+          users={users}
           open={isTaskDetailOpen}
           onOpenChange={setIsTaskDetailOpen}
           onUpdateTask={updateTask}

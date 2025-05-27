@@ -30,8 +30,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { CalendarIcon, X, MessageCircle, Trash2, Send } from "lucide-react";
 import { format } from "date-fns";
-import type { Task, User, Priority, TaskStatus, Comment } from "../_lib/types";
 import { toast } from "sonner";
+import { Task, User } from "@/lib/types/types";
 
 type TaskDetailDrawerProps = {
   task: Task;

@@ -25,7 +25,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import type { Task } from "../_lib/types";
+import { Task } from "@/lib/types/types";
 
 type AnalyticsProps = {
   tasks: Task[];
@@ -42,15 +42,15 @@ export function Analytics({ tasks }: AnalyticsProps): JSX.Element {
 
     const tasksByStatus = {
       todo: tasks.filter((task) => task.status === "todo").length,
-      "in-progress": tasks.filter((task) => task.status === "in-progress")
+      "in-progress": tasks.filter((task) => task.status === "in_progress")
         .length,
-      done: completedTasks,
+      done: tasks.filter((task) => task.status === "done").length,
     };
 
     const tasksByPriority = {
-      low: tasks.filter((task) => task.priority === "low").length,
-      medium: tasks.filter((task) => task.priority === "medium").length,
-      high: tasks.filter((task) => task.priority === "high").length,
+      low: tasks.filter((task) => task.priority === "LOW").length,
+      medium: tasks.filter((task) => task.priority === "MEDIUM").length,
+      high: tasks.filter((task) => task.priority === "HIGH").length,
     };
 
     const overdueTasks = tasks.filter(
@@ -81,9 +81,9 @@ export function Analytics({ tasks }: AnalyticsProps): JSX.Element {
   ];
 
   const priorityData = [
-    { name: "Low", value: analytics.tasksByPriority.low },
-    { name: "Medium", value: analytics.tasksByPriority.medium },
-    { name: "High", value: analytics.tasksByPriority.high },
+    { name: "low", value: analytics.tasksByPriority.low },
+    { name: "medium", value: analytics.tasksByPriority.medium },
+    { name: "high", value: analytics.tasksByPriority.high },
   ];
 
   return (
