@@ -100,6 +100,8 @@ export async function createTask(data: {
         },
       },
       attachments: true,
+      board: true,
+      column: true,
     },
   });
 }
@@ -127,6 +129,8 @@ export async function updateTask(
           author: true,
         },
       },
+      board: true,
+      column: true,
       attachments: true,
     },
   });

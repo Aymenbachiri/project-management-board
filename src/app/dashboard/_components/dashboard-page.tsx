@@ -202,43 +202,125 @@ export function DashboardPage({}: DashboardPageProps): JSX.Element {
     const overId = over.id as string;
 
     const activeTask = tasks.find((task) => task.id === activeId);
-    const overTask = tasks.find((task) => task.id === overId);
-
     if (!activeTask) return;
 
     try {
-      // Update task status in database
-      await fetch(`/api/tasks/${activeId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: activeTask.status }),
-      });
+      let shouldUpdateDatabase = false;
+      let newStatus = activeTask.status;
+      const reorderedTasks = tasks;
 
-      // If dropped on another task, reorder within the same column
-      if (overTask && activeTask.status === overTask.status) {
-        const columnTasks = filteredTasks.filter(
-          (task) => task.status === activeTask.status,
+      // Check if we're dropping on a column
+      const overColumn = currentBoard?.columns.find((col) => col.id === overId);
+      if (overColumn && activeTask.status !== overColumn.id) {
+        newStatus = overColumn.id as TaskStatus;
+        shouldUpdateDatabase = true;
+
+        // Update local state immediately for better UX
+        setTasks((prev) =>
+          prev.map((task) =>
+            task.id === activeId ? { ...task, status: newStatus } : task,
+          ),
         );
-        const oldIndex = columnTasks.findIndex((task) => task.id === activeId);
-        const newIndex = columnTasks.findIndex((task) => task.id === overId);
+      }
 
-        if (oldIndex !== newIndex) {
-          const reorderedTasks = arrayMove(columnTasks, oldIndex, newIndex);
-          setTasks((prev) => {
-            const otherTasks = prev.filter(
-              (task) =>
-                task.status !== activeTask.status ||
-                task.boardId !== activeBoard,
-            );
-            return [...otherTasks, ...reorderedTasks];
-          });
+      // Check if we're dropping on another task for reordering
+      const overTask = tasks.find((task) => task.id === overId);
+      if (overTask) {
+        // If dropping on a task in a different column, update status
+        if (activeTask.status !== overTask.status) {
+          newStatus = overTask.status;
+          shouldUpdateDatabase = true;
         }
+
+        // Handle reordering within the same column
+        if (
+          activeTask.status === overTask.status ||
+          newStatus === overTask.status
+        ) {
+          const columnTasks = filteredTasks.filter(
+            (task) => task.status === (newStatus || activeTask.status),
+          );
+          const oldIndex = columnTasks.findIndex(
+            (task) => task.id === activeId,
+          );
+          const newIndex = columnTasks.findIndex((task) => task.id === overId);
+
+          if (oldIndex !== newIndex && oldIndex !== -1 && newIndex !== -1) {
+            const reordered = arrayMove(columnTasks, oldIndex, newIndex);
+
+            // Update the order field for affected tasks
+            const updatedTasks = reordered.map((task, index) => ({
+              ...task,
+              order: index,
+              status: newStatus || task.status,
+            }));
+
+            // Update local state
+            setTasks((prev) => {
+              const otherTasks = prev.filter(
+                (task) =>
+                  task.status !== (newStatus || activeTask.status) ||
+                  task.boardId !== activeBoard,
+              );
+              return [...otherTasks, ...updatedTasks];
+            });
+
+            // Update order in database for all affected tasks
+            const orderUpdates = updatedTasks.map((task, index) =>
+              fetch(`/api/tasks/${task.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  order: index,
+                  status: newStatus || task.status,
+                }),
+              }),
+            );
+
+            await Promise.all(orderUpdates);
+            shouldUpdateDatabase = false; // Already updated in batch
+          }
+        }
+      }
+
+      // Update task status in database if needed and not already updated
+      if (shouldUpdateDatabase) {
+        const response = await fetch(`/api/tasks/${activeId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to update task status");
+        }
+
+        // Update the task in local state with the response
+        const updatedTask = await response.json();
+        setTasks((prev) =>
+          prev.map((task) =>
+            task.id === activeId
+              ? {
+                  ...updatedTask,
+                  priority: getPriorityDisplay(updatedTask.priority),
+                }
+              : task,
+          ),
+        );
       }
 
       toast.success("Task moved successfully");
     } catch (error) {
       console.error("Error updating task:", error);
-      toast.error("Failed to move task");
+
+      // Revert local state changes on error
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === activeId ? { ...task, status: activeTask.status } : task,
+        ),
+      );
+
+      toast.error("Failed to move task. Changes have been reverted.");
     }
   };
 
