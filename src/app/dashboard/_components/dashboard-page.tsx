@@ -38,6 +38,7 @@ import {
   TaskStatus,
 } from "@/lib/types/types";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type DashboardPageProps = {
   boards: BoardType[] | undefined;
@@ -204,121 +205,154 @@ export function DashboardPage({}: DashboardPageProps): JSX.Element {
     const activeTask = tasks.find((task) => task.id === activeId);
     if (!activeTask) return;
 
+    // Store original task for potential rollback
+    const originalTask = { ...activeTask };
+
     try {
-      let shouldUpdateDatabase = false;
       let newStatus = activeTask.status;
-      const reorderedTasks = tasks;
+      let shouldUpdateStatus = false;
+      let shouldUpdateOrder = false;
+      let updatedTasks: any[] = [];
 
       // Check if we're dropping on a column
       const overColumn = currentBoard?.columns.find((col) => col.id === overId);
       if (overColumn && activeTask.status !== overColumn.id) {
         newStatus = overColumn.id as TaskStatus;
-        shouldUpdateDatabase = true;
-
-        // Update local state immediately for better UX
-        setTasks((prev) =>
-          prev.map((task) =>
-            task.id === activeId ? { ...task, status: newStatus } : task,
-          ),
-        );
+        shouldUpdateStatus = true;
       }
 
-      // Check if we're dropping on another task for reordering
+      // Check if we're dropping on another task
       const overTask = tasks.find((task) => task.id === overId);
       if (overTask) {
         // If dropping on a task in a different column, update status
         if (activeTask.status !== overTask.status) {
           newStatus = overTask.status;
-          shouldUpdateDatabase = true;
+          shouldUpdateStatus = true;
         }
 
-        // Handle reordering within the same column
+        // Handle reordering within the same column or new column
         if (
           activeTask.status === overTask.status ||
           newStatus === overTask.status
         ) {
-          const columnTasks = filteredTasks.filter(
-            (task) => task.status === (newStatus || activeTask.status),
+          const targetStatus = newStatus || activeTask.status;
+          const columnTasks = tasks.filter(
+            (task) => task.status === targetStatus,
           );
+
           const oldIndex = columnTasks.findIndex(
             (task) => task.id === activeId,
           );
           const newIndex = columnTasks.findIndex((task) => task.id === overId);
 
           if (oldIndex !== newIndex && oldIndex !== -1 && newIndex !== -1) {
+            shouldUpdateOrder = true;
             const reordered = arrayMove(columnTasks, oldIndex, newIndex);
 
-            // Update the order field for affected tasks
-            const updatedTasks = reordered.map((task, index) => ({
+            // Update the order and status for affected tasks
+            updatedTasks = reordered.map((task, index) => ({
               ...task,
               order: index,
-              status: newStatus || task.status,
+              status: targetStatus,
             }));
-
-            // Update local state
-            setTasks((prev) => {
-              const otherTasks = prev.filter(
-                (task) =>
-                  task.status !== (newStatus || activeTask.status) ||
-                  task.boardId !== activeBoard,
-              );
-              return [...otherTasks, ...updatedTasks];
-            });
-
-            // Update order in database for all affected tasks
-            const orderUpdates = updatedTasks.map((task, index) =>
-              fetch(`/api/tasks/${task.id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  order: index,
-                  status: newStatus || task.status,
-                }),
-              }),
-            );
-
-            await Promise.all(orderUpdates);
-            shouldUpdateDatabase = false; // Already updated in batch
           }
         }
       }
 
-      // Update task status in database if needed and not already updated
-      if (shouldUpdateDatabase) {
-        const response = await fetch(`/api/tasks/${activeId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: newStatus }),
+      // Update local state immediately for better UX
+      if (shouldUpdateStatus || shouldUpdateOrder) {
+        setTasks((prev) => {
+          if (shouldUpdateOrder && updatedTasks.length > 0) {
+            // For reordering, replace all tasks in the affected column
+            const otherTasks = prev.filter(
+              (task) =>
+                task.status !== (newStatus || activeTask.status) ||
+                task.boardId !== activeBoard,
+            );
+            return [...otherTasks, ...updatedTasks];
+          } else {
+            // For simple status change
+            return prev.map((task) =>
+              task.id === activeId ? { ...task, status: newStatus } : task,
+            );
+          }
         });
+      }
 
-        if (!response.ok) {
-          throw new Error("Failed to update task status");
+      // Prepare database updates
+      const dbUpdates: Promise<Response>[] = [];
+
+      if (shouldUpdateOrder && updatedTasks.length > 0) {
+        // Batch update all affected tasks
+        updatedTasks.forEach((task, index) => {
+          dbUpdates.push(
+            fetch(`/api/tasks/${task.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                status: task.status,
+                order: index,
+              }),
+            }),
+          );
+        });
+      } else if (shouldUpdateStatus) {
+        // Simple status update
+        dbUpdates.push(
+          fetch(`/api/tasks/${activeId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: newStatus }),
+          }),
+        );
+      }
+
+      // Execute all database updates
+      if (dbUpdates.length > 0) {
+        const responses = await Promise.all(dbUpdates);
+
+        // Check if all updates were successful
+        const failedUpdates = responses.filter((response) => !response.ok);
+        if (failedUpdates.length > 0) {
+          throw new Error(`Failed to update ${failedUpdates.length} task(s)`);
         }
 
-        // Update the task in local state with the response
-        const updatedTask = await response.json();
-        setTasks((prev) =>
-          prev.map((task) =>
-            task.id === activeId
-              ? {
-                  ...updatedTask,
-                  priority: getPriorityDisplay(updatedTask.priority),
-                }
-              : task,
-          ),
-        );
+        // If we only updated one task, get the updated data
+        if (
+          dbUpdates.length === 1 &&
+          shouldUpdateStatus &&
+          !shouldUpdateOrder
+        ) {
+          const updatedTaskData = await responses[0].json();
+          setTasks((prev) =>
+            prev.map((task) =>
+              task.id === activeId
+                ? {
+                    ...updatedTaskData,
+                    priority: getPriorityDisplay(updatedTaskData.priority),
+                  }
+                : task,
+            ),
+          );
+        }
       }
 
       toast.success("Task moved successfully");
     } catch (error) {
       console.error("Error updating task:", error);
 
-      // Revert local state changes on error
-      setTasks((prev) =>
-        prev.map((task) =>
-          task.id === activeId ? { ...task, status: activeTask.status } : task,
-        ),
-      );
+      // Revert all local state changes on error
+      setTasks((prev) => {
+        // Find all tasks that might have been affected and revert them
+        return prev.map((task) => {
+          if (task.id === activeId) {
+            return originalTask;
+          }
+          // Also revert any other tasks that might have been reordered
+          const originalTaskInList = tasks.find((t) => t.id === task.id);
+          return originalTaskInList || task;
+        });
+      });
 
       toast.error("Failed to move task. Changes have been reverted.");
     }
@@ -427,10 +461,64 @@ export function DashboardPage({}: DashboardPageProps): JSX.Element {
 
   if (loading) {
     return (
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading...</span>
+      <div className="bg-background container mx-auto min-h-screen w-full">
+        <div className="border-b lg:hidden">
+          <div className="flex h-16 items-center justify-between px-4">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-8 w-8 rounded-md" />
+          </div>
+        </div>
+        <div className="hidden border-b lg:block">
+          <div className="flex h-16 items-center px-4">
+            <Skeleton className="h-7 w-52" />
+            <div className="ml-auto flex items-center space-x-4">
+              <Skeleton className="h-8 w-24 rounded-md" />
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col lg:flex-row">
+          <div className="bg-muted/50 border-b p-4 lg:hidden">
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+          <div className="bg-muted/50 hidden w-64 rounded-md border-r p-4 lg:block lg:h-fit">
+            <Skeleton className="mb-4 h-5 w-24" />
+            <div className="space-y-2">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full rounded-md" />
+              ))}
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="border-b px-4">
+              <div className="flex space-x-2">
+                <Skeleton className="h-8 w-20 rounded-md" />
+                <Skeleton className="h-8 w-28 rounded-md" />
+              </div>
+            </div>
+            <div className="p-2 lg:p-4">
+              <div className="mb-4 flex flex-col space-y-4 lg:mb-6 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
+                <div className="min-w-0 space-y-2">
+                  <Skeleton className="h-6 w-48" />
+                  <Skeleton className="h-4 w-64" />
+                </div>
+                <div className="flex-shrink-0">
+                  <Skeleton className="h-10 w-64 rounded-md" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-6 w-32" />
+                    <div className="space-y-2">
+                      {[...Array(3)].map((_, j) => (
+                        <Skeleton key={j} className="h-20 w-full rounded-md" />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
