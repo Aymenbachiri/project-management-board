@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { prisma } from "./prisma";
 import type { TaskStatus, Priority } from "@prisma/client";
 
@@ -172,5 +173,23 @@ export async function getBoardColumns(boardId: string) {
   return await prisma.boardColumn.findMany({
     where: { boardId },
     orderBy: { order: "asc" },
+  });
+}
+
+export async function getTaskById(taskId: string) {
+  return await prisma.task.findUnique({
+    where: { id: taskId },
+    include: {
+      assignee: true,
+      comments: {
+        include: {
+          author: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      attachments: true,
+    },
   });
 }

@@ -71,7 +71,6 @@ export function DashboardPage({}: DashboardPageProps): JSX.Element {
     }),
   );
 
-  // Load initial data
   useEffect(() => {
     loadData();
   }, []);
@@ -125,7 +124,9 @@ export function DashboardPage({}: DashboardPageProps): JSX.Element {
 
   const loadTasks = async (boardId: string) => {
     try {
-      const response = await fetch(`/api/boards/${boardId}/tasks`);
+      const response = await fetch(`/api/boards/${boardId}/tasks`, {
+        next: { tags: ["tasks"] },
+      });
       if (response.ok) {
         const tasksData = await response.json();
         setTasks(

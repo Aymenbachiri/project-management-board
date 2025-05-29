@@ -31,7 +31,8 @@ import { Separator } from "@/components/ui/separator";
 import { CalendarIcon, X, MessageCircle, Trash2, Send } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Task, User } from "@/lib/types/types";
+import { Priority, Task, TaskStatus, User } from "@/lib/types/types";
+import { useSession } from "next-auth/react";
 
 type TaskDetailDrawerProps = {
   task: Task;
@@ -50,6 +51,7 @@ export function TaskDetailDrawer({
   onUpdateTask,
   onDeleteTask,
 }: TaskDetailDrawerProps): JSX.Element {
+  const session = useSession();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTask, setEditedTask] = useState(task);
   const [newComment, setNewComment] = useState("");
@@ -69,19 +71,36 @@ export function TaskDetailDrawer({
     toast.success("Task deleted successfully");
   };
 
-  const addComment = () => {
+  const addComment = async () => {
     if (newComment.trim()) {
-      const comment: Comment = {
-        id: `comment-${Date.now()}`,
-        content: newComment.trim(),
-        authorId: "current-user", // In a real app, this would be the current user's ID
-        createdAt: new Date().toISOString(),
-      };
-      onUpdateTask(task.id, {
-        comments: [...task.comments, comment],
-      });
-      setNewComment("");
-      toast.success("Comment added");
+      try {
+        const response = await fetch(`/api/boards/tasks/${task.id}/comments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: newComment.trim(),
+          }),
+        });
+
+        if (response.ok) {
+          const { comment, updatedTask } = await response.json();
+
+          onUpdateTask(task.id, {
+            comments: updatedTask.comments,
+          });
+
+          setEditedTask((prev) => ({
+            ...prev,
+            comments: updatedTask.comments,
+          }));
+
+          setNewComment("");
+          toast.success("Comment added");
+        }
+      } catch (error) {
+        console.error("Error adding comment:", error);
+        toast.error("Failed to add comment");
+      }
     }
   };
 
@@ -170,7 +189,7 @@ export function TaskDetailDrawer({
               <div className="grid gap-2">
                 <Label>Description</Label>
                 <Textarea
-                  value={editedTask.description}
+                  value={editedTask.description as string}
                   onChange={(e) =>
                     setEditedTask({
                       ...editedTask,
@@ -341,10 +360,10 @@ export function TaskDetailDrawer({
                     <Avatar className="h-6 w-6">
                       <AvatarImage
                         src={assignee.avatar || "/placeholder.svg"}
-                        alt={assignee.name}
+                        alt={assignee.name as string}
                       />
                       <AvatarFallback className="text-xs">
-                        {assignee.name
+                        {assignee?.name
                           .split(" ")
                           .map((n) => n[0])
                           .join("")}
@@ -403,7 +422,7 @@ export function TaskDetailDrawer({
                     <Avatar className="h-7 w-7 lg:h-8 lg:w-8">
                       <AvatarImage
                         src={author?.avatar || "/placeholder.svg"}
-                        alt={author?.name}
+                        alt={author?.name as string}
                       />
                       <AvatarFallback className="text-xs">
                         {author?.name

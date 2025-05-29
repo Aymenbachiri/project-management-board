@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { addComment } from "@/lib/db/db-operation";
+import { addComment, getTaskById } from "@/lib/db/db-operation";
 import { NextResponse } from "next/server";
 
 export async function POST(
@@ -11,7 +11,13 @@ export async function POST(
   try {
     const { content } = await request.json();
     const comment = await addComment(params.taskId, content, userId);
-    return NextResponse.json(comment);
+
+    const updatedTask = await getTaskById(params.taskId);
+
+    return NextResponse.json({
+      comment,
+      updatedTask,
+    });
   } catch (error) {
     console.error("Error adding comment:", error);
     return NextResponse.json(
