@@ -12,15 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Board } from "@prisma/client";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  createBoardSchema,
-  type CreateBoardInput,
-} from "@/lib/validation/board";
-import { createBoard } from "@/lib/helpers/create-board";
-import { toast } from "sonner";
 import {
   Form,
   FormControl,
@@ -30,6 +21,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
+import { useCreateBoard } from "../_lib/hooks/use-create-board";
 
 type CreateBoardDialogProps = {
   open: boolean;
@@ -42,36 +34,10 @@ export function CreateBoardDialog({
   onOpenChange,
   onCreateBoard,
 }: CreateBoardDialogProps): JSX.Element {
-  const form = useForm<CreateBoardInput>({
-    resolver: zodResolver(createBoardSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-    },
-  });
-
-  const isSubmitting = form.formState.isSubmitting;
-
-  const onSubmit = async (data: CreateBoardInput) => {
-    try {
-      const newBoard = await createBoard(data);
-      onCreateBoard(newBoard);
-      form.reset();
-      onOpenChange(false);
-      toast.success("Board created successfully!");
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to create board",
-      );
-    }
-  };
-
-  const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen && !isSubmitting) {
-      form.reset();
-    }
-    onOpenChange(newOpen);
-  };
+  const { form, isSubmitting, onSubmit, handleOpenChange } = useCreateBoard(
+    onCreateBoard,
+    onOpenChange,
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX, useState } from "react";
+import { type JSX } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,10 +28,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
-import { Priority, TaskStatus, User } from "@prisma/client";
-import { CreateTaskSchema, type CreateTaskInput } from "@/lib/validation/task";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { TaskStatus, User } from "@prisma/client";
 import {
   Form,
   FormControl,
@@ -40,6 +37,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { CreateTaskInput } from "@/lib/validation/task";
+import { useCreateTask } from "../_lib/hooks/use-create-task";
 
 type CreateTaskDialogProps = {
   open: boolean;
@@ -58,76 +57,19 @@ export function CreateTaskDialog({
   defaultStatus,
   columnId,
 }: CreateTaskDialogProps): JSX.Element {
-  const [tagInput, setTagInput] = useState("");
-
-  const form = useForm<CreateTaskInput>({
-    resolver: zodResolver(CreateTaskSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-      status: defaultStatus,
-      priority: "LOW" as Priority,
-      dueDate: undefined,
-      assigneeId: "",
-      tags: [],
-      columnId: columnId,
-    },
-  });
-
   const {
-    watch,
-    setValue,
+    form,
+    onSubmit,
     handleSubmit,
-    reset,
-    formState: { isSubmitting },
-  } = form;
-  const watchedTags = watch("tags") || [];
-
-  const onSubmit = async (data: CreateTaskInput) => {
-    try {
-      const formattedData = {
-        ...data,
-        dueDate: data.dueDate
-          ? new Date(data.dueDate).toISOString()
-          : undefined,
-        assigneeId:
-          data.assigneeId === "unassigned" ? undefined : data.assigneeId,
-      };
-
-      await onCreateTask(formattedData);
-      handleClose();
-    } catch (error) {
-      console.error("Failed to create task:", error);
-    }
-  };
-
-  const handleClose = () => {
-    reset();
-    setTagInput("");
-    onOpenChange(false);
-  };
-
-  const addTag = () => {
-    const trimmedTag = tagInput.trim();
-    if (trimmedTag && !watchedTags.includes(trimmedTag)) {
-      setValue("tags", [...watchedTags, trimmedTag]);
-      setTagInput("");
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setValue(
-      "tags",
-      watchedTags.filter((tag) => tag !== tagToRemove),
-    );
-  };
-
-  const handleTagKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addTag();
-    }
-  };
+    removeTag,
+    handleTagKeyDown,
+    isSubmitting,
+    addTag,
+    setTagInput,
+    tagInput,
+    watchedTags,
+    handleClose,
+  } = useCreateTask(onCreateTask, defaultStatus, columnId, onOpenChange);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

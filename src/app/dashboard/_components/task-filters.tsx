@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { type JSX, useState } from "react";
@@ -18,21 +19,12 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Filter, X } from "lucide-react";
-import { Priority } from "../_lib/types";
-import { TaskStatus } from "@prisma/client";
 import { Task, User } from "@/lib/types/types";
-
-type Filters = {
-  assignee: string;
-  tags: string[];
-  priority: Priority | "";
-  status: TaskStatus | "";
-  dueDateRange: { from: Date; to: Date } | null;
-};
+import { Filter as FilterType } from "../_lib/hooks/use-dashboard";
 
 type TaskFiltersProps = {
-  filters: Filters;
-  onFiltersChange: (filters: Filters) => void;
+  filters: FilterType;
+  onFiltersChange: (filters: FilterType) => void;
   users: User[];
   tasks: Task[];
 };
