@@ -147,26 +147,75 @@ export function DashboardPage({}: DashboardPageProps): JSX.Element {
 
   const filteredTasks = useMemo(() => {
     return boardTasks.filter((task) => {
-      if (filters.assignee && task.assigneeId !== filters.assignee)
+      // Assignee filter
+      if (filters.assignee && task.assigneeId !== filters.assignee) {
         return false;
+      }
+
+      // Tags filter - check if task has any of the selected tags
+      if (filters.tags.length > 0) {
+        const hasMatchingTag = filters.tags.some(
+          (filterTag) => task.tags && task.tags.includes(filterTag),
+        );
+        if (!hasMatchingTag) return false;
+      }
+
+      // Priority filter - handle empty string case
       if (
-        filters.tags.length > 0 &&
-        !filters.tags.some((tag) => task.tags.includes(tag))
-      )
+        filters.priority &&
+        filters.priority !== "" &&
+        task.priority !== filters.priority
+      ) {
         return false;
-      if (filters.priority && task.priority !== filters.priority) return false;
-      if (filters.status && task.status !== filters.status) return false;
+      }
+
+      // Status filter - handle empty string case
+      if (
+        filters.status &&
+        filters.status !== "" &&
+        task.status !== filters.status
+      ) {
+        return false;
+      }
+
+      // Due date range filter
       if (filters.dueDateRange && task.dueDate) {
         const dueDate = new Date(task.dueDate);
-        if (
-          dueDate < filters.dueDateRange.from ||
-          dueDate > filters.dueDateRange.to
-        )
+        const fromDate = new Date(filters.dueDateRange.from);
+        const toDate = new Date(filters.dueDateRange.to);
+
+        // Set time to start/end of day for proper comparison
+        fromDate.setHours(0, 0, 0, 0);
+        toDate.setHours(23, 59, 59, 999);
+
+        if (dueDate < fromDate || dueDate > toDate) {
           return false;
+        }
       }
+
       return true;
     });
   }, [boardTasks, filters]);
+
+  const clearFilters = () => {
+    setFilters({
+      assignee: "",
+      tags: [],
+      priority: "",
+      status: "",
+      dueDateRange: null,
+    });
+  };
+
+  const updateFilter = <K extends keyof typeof filters>(
+    key: K,
+    value: (typeof filters)[K],
+  ) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
   const handleDragStart = (event: DragStartEvent) => {
     // Optional: Add visual feedback when dragging starts
