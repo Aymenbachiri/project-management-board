@@ -95,6 +95,9 @@ export function TaskDetailDrawer({
           setNewComment("");
           setIsTaskDetailOpen(false);
           toast.success("Comment added");
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
         }
       } catch (error) {
         console.error("Error adding comment:", error);
