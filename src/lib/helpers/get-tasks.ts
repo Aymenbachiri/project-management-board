@@ -7,6 +7,7 @@ export async function getTasks(): Promise<Task[] | undefined> {
     const cookieStore = await cookies();
     const response = await fetch(`${API_URL}/api/boards/tasks`, {
       headers: { Cookie: cookieStore.toString() },
+      next: { tags: ["tasks"] },
     });
 
     if (!response.ok) {

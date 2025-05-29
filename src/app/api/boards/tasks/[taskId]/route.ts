@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { deleteTask, updateTask } from "@/lib/db/db-operation";
 import { getPriorityValue } from "@/lib/types/types";
 import { NextResponse } from "next/server";
@@ -9,12 +10,24 @@ export async function PATCH(request: Request, { params }: { params: Params }) {
     const { taskId } = await params;
     const data = await request.json();
 
+    const {
+      id,
+      createdAt,
+      updatedAt,
+      assignee,
+      comments,
+      attachments,
+      ...updateFields
+    } = data;
+
     const updateData = {
-      ...data,
-      priority: data.priority ? getPriorityValue(data.priority) : undefined,
-      dueDate: data.dueDate
-        ? new Date(data.dueDate)
-        : data.dueDate === null
+      ...updateFields,
+      priority: updateFields.priority
+        ? getPriorityValue(updateFields.priority)
+        : undefined,
+      dueDate: updateFields.dueDate
+        ? new Date(updateFields.dueDate)
+        : updateFields.dueDate === null
           ? null
           : undefined,
     };

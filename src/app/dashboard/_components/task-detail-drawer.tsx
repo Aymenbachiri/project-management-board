@@ -41,6 +41,7 @@ type TaskDetailDrawerProps = {
   onOpenChange: (open: boolean) => void;
   onUpdateTask: (taskId: string, updates: Partial<Task>) => void;
   onDeleteTask: (taskId: string) => void;
+  setIsTaskDetailOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export function TaskDetailDrawer({
@@ -50,6 +51,7 @@ export function TaskDetailDrawer({
   onOpenChange,
   onUpdateTask,
   onDeleteTask,
+  setIsTaskDetailOpen,
 }: TaskDetailDrawerProps): JSX.Element {
   const session = useSession();
   const [isEditing, setIsEditing] = useState(false);
@@ -62,6 +64,7 @@ export function TaskDetailDrawer({
   const handleSave = () => {
     onUpdateTask(task.id, editedTask);
     setIsEditing(false);
+    setIsTaskDetailOpen(false);
     toast.success("Task updated successfully");
   };
 
@@ -79,22 +82,18 @@ export function TaskDetailDrawer({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             content: newComment.trim(),
+            authorId: session?.data?.user?.id,
           }),
         });
 
         if (response.ok) {
-          const { comment, updatedTask } = await response.json();
-
-          onUpdateTask(task.id, {
-            comments: updatedTask.comments,
-          });
-
-          setEditedTask((prev) => ({
-            ...prev,
-            comments: updatedTask.comments,
-          }));
-
+          const newCommentData = await response.json();
+          const updatedTask = {
+            ...task,
+            comments: [...task.comments, newCommentData],
+          };
           setNewComment("");
+          setIsTaskDetailOpen(false);
           toast.success("Comment added");
         }
       } catch (error) {
@@ -364,7 +363,7 @@ export function TaskDetailDrawer({
                       />
                       <AvatarFallback className="text-xs">
                         {assignee?.name
-                          .split(" ")
+                          ?.split(" ")
                           .map((n) => n[0])
                           .join("")}
                       </AvatarFallback>
@@ -426,7 +425,7 @@ export function TaskDetailDrawer({
                       />
                       <AvatarFallback className="text-xs">
                         {author?.name
-                          .split(" ")
+                          ?.split(" ")
                           .map((n) => n[0])
                           .join("") || "U"}
                       </AvatarFallback>

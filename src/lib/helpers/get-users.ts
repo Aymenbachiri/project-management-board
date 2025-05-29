@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { API_URL } from "../utils/env";
-import { User } from "@prisma/client";
+import { User } from "../types/types";
 
 export async function getUsers(): Promise<User[] | undefined> {
   try {
