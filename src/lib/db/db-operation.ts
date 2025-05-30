@@ -1,64 +1,6 @@
 import { prisma } from "./prisma";
 import type { TaskStatus, Priority } from "@prisma/client";
 
-export async function getBoards(userId: string) {
-  return await prisma.board.findMany({
-    where: {
-      OR: [{ ownerId: userId }, { members: { some: { userId } } }],
-    },
-    include: {
-      owner: true,
-      members: {
-        include: {
-          user: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-}
-
-export async function createBoard(
-  name: string,
-  description: string,
-  ownerId: string,
-) {
-  return await prisma.board.create({
-    data: {
-      name,
-      description,
-      ownerId,
-      columns: {
-        create: [
-          {
-            columnId: "todo",
-            title: "To_Do",
-            color: "Red",
-            order: 0,
-          },
-          {
-            columnId: "in_progress",
-            title: "In_Progress",
-            color: "Orange",
-            order: 1,
-          },
-          {
-            columnId: "done",
-            title: "Done",
-            color: "Green",
-            order: 2,
-          },
-        ],
-      },
-    },
-    include: {
-      columns: true,
-    },
-  });
-}
-
 // Task operations
 export async function getTasks(boardId: string) {
   return await prisma.task.findMany({

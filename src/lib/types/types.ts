@@ -11,7 +11,7 @@ import type {
 export type { TaskStatus, Priority };
 
 export interface User extends PrismaUser {
-  avatar?: string; // Using image field from Prisma
+  avatar?: string;
 }
 
 export interface Comment extends PrismaComment {}
@@ -35,7 +35,6 @@ export interface Board extends PrismaBoard {
   tasks?: Task[];
 }
 
-// Helper function to convert Prisma enums to display values
 export const getColumnConfig = (columnId: string) => {
   switch (columnId) {
     case "todo":

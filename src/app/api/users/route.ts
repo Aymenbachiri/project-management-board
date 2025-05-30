@@ -21,9 +21,7 @@ export async function GET() {
         assignedTasks: true,
         taskComments: true,
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(users, { status: 200 });
