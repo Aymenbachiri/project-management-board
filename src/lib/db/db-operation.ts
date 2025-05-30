@@ -48,42 +48,6 @@ export async function createTask(data: {
   });
 }
 
-export async function updateTask(
-  taskId: string,
-  data: {
-    title?: string;
-    description?: string;
-    status?: TaskStatus;
-    priority?: Priority;
-    assigneeId?: string | null;
-    dueDate?: Date | null;
-    tags?: string[];
-    order?: number;
-  },
-) {
-  return await prisma.task.update({
-    where: { id: taskId },
-    data,
-    include: {
-      assignee: true,
-      comments: {
-        include: {
-          author: true,
-        },
-      },
-      board: true,
-      column: true,
-      attachments: true,
-    },
-  });
-}
-
-export async function deleteTask(taskId: string) {
-  return await prisma.task.delete({
-    where: { id: taskId },
-  });
-}
-
 // Comment operations
 export async function addComment(
   taskId: string,

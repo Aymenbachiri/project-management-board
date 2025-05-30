@@ -189,7 +189,7 @@ export async function GET() {
     });
     return NextResponse.json(boards, { status: 200 });
   } catch (error) {
-    console.error("Error fetching boards:", error);
+    console.error("[GET /api/boards]", error);
     return NextResponse.json(
       { error: "Failed to fetch boards", message: (error as Error).message },
       { status: 500 },
