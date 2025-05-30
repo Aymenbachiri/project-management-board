@@ -1,23 +1,5 @@
 import { prisma } from "./prisma";
 
-// Comment operations
-export async function addComment(
-  taskId: string,
-  content: string,
-  authorId: string,
-) {
-  return await prisma.comment.create({
-    data: {
-      content,
-      taskId,
-      authorId,
-    },
-    include: {
-      author: true,
-    },
-  });
-}
-
 // User operations
 export async function getUsers() {
   return await prisma.user.findMany({

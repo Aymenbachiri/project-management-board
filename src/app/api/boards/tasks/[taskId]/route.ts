@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db/prisma";
 import { getPriorityValue } from "@/lib/types/types";
 import { type NextRequest, NextResponse } from "next/server";
@@ -289,6 +290,14 @@ export async function PATCH(
   { params }: { params: Params },
 ) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Session missing" },
+        { status: 401 },
+      );
+    }
+
     const { taskId } = await params;
     const data = await request.json();
 
@@ -340,6 +349,14 @@ export async function DELETE(
   { params }: { params: Params },
 ) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Session missing" },
+        { status: 401 },
+      );
+    }
+
     const { taskId } = await params;
     if (!taskId) {
       return NextResponse.json("TaskId is required", { status: 404 });
@@ -353,9 +370,7 @@ export async function DELETE(
       return NextResponse.json("Task not found", { status: 404 });
     }
 
-    await prisma.task.delete({
-      where: { id: taskId },
-    });
+    await prisma.task.delete({ where: { id: taskId } });
     return NextResponse.json("Task Deleted Sucessfully", { status: 200 });
   } catch (error) {
     console.error("[DELETE /api/boards/tasks/[taskId]]", error);
