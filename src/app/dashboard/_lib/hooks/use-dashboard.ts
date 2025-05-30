@@ -8,6 +8,7 @@ import {
   Board as BoardType,
 } from "@/lib/types/types";
 import { API_URL } from "@/lib/utils/env";
+import { CreateTaskInput } from "@/lib/validation/task";
 import {
   DragEndEvent,
   DragOverEvent,
@@ -51,9 +52,7 @@ type useDashboardReturn = {
   handleDragEnd: (event: DragEndEvent) => Promise<void>;
   filteredTasks: Task[];
   openTaskDetail: (task: Task) => void;
-  createTask: (
-    taskData: Omit<Task, "id" | "createdAt" | "updatedAt">,
-  ) => Promise<void>;
+  createTask: (taskData: CreateTaskInput) => Promise<void>;
   isCreateBoardOpen: boolean;
   selectedTask: Task | null;
   isTaskDetailOpen: boolean;
@@ -396,10 +395,10 @@ export function useDashboard(): useDashboardReturn {
     }
   };
 
-  const createTask = async (
-    taskData: Omit<Task, "id" | "createdAt" | "updatedAt">,
-  ) => {
+  const createTask = async (taskData: CreateTaskInput) => {
     try {
+      console.log("Creating task with data:", taskData);
+
       const response = await fetch(
         `${API_URL}/api/boards/${activeBoard}/tasks`,
         {
@@ -409,14 +408,22 @@ export function useDashboard(): useDashboardReturn {
         },
       );
 
+      console.log("Response status:", response.status);
+
       if (response.ok) {
         const newTask = await response.json();
+        console.log("New task created:", newTask);
+
         const taskWithDisplayPriority = {
           ...newTask,
           priority: getPriorityDisplay(newTask.priority),
         };
         setTasks((prev) => [...prev, taskWithDisplayPriority]);
         toast.success("Task created successfully");
+      } else {
+        const errorText = await response.text();
+        console.error("Server error:", errorText);
+        toast.error(`Failed to create task: ${errorText}`);
       }
     } catch (error) {
       console.error("Error creating task:", error);

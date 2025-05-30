@@ -17,6 +17,8 @@ export function useCreateTask(
   defaultStatus: useCreateTaskProps["defaultStatus"],
   columnId: useCreateTaskProps["columnId"],
 ) {
+  console.log("columnId: ", columnId);
+
   const [tagInput, setTagInput] = useState("");
 
   const form = useForm<CreateTaskInput>({
@@ -30,6 +32,7 @@ export function useCreateTask(
       assigneeId: "",
       tags: [],
       columnId: columnId,
+      order: undefined,
     },
   });
 
@@ -44,14 +47,16 @@ export function useCreateTask(
 
   const onSubmit = async (data: CreateTaskInput) => {
     try {
+      console.log("Form data before processing:", data);
+
       const formattedData = {
         ...data,
-        dueDate: data.dueDate
-          ? new Date(data.dueDate).toISOString()
-          : undefined,
-        assigneeId:
-          data.assigneeId === "unassigned" ? undefined : data.assigneeId,
+        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
+        assigneeId: data.assigneeId === "unassigned" ? null : data.assigneeId,
+        order: data.order || 0,
       };
+
+      console.log("Formatted data being sent:", formattedData);
 
       onCreateTask(formattedData);
       handleClose();

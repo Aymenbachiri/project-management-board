@@ -20,9 +20,7 @@ type BoardProps = {
   tasks: Task[];
   users: User[];
   onTaskClick: (task: Task) => void;
-  onCreateTask: (
-    taskData: Omit<Task, "id" | "createdAt" | "updatedAt">,
-  ) => Promise<void>;
+  onCreateTask: (taskData: CreateTaskInput) => Promise<void>;
 };
 
 export function Board({

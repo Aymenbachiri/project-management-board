@@ -57,6 +57,10 @@ export function CreateTaskDialog({
   defaultStatus,
   columnId,
 }: CreateTaskDialogProps): JSX.Element {
+  const onError = (errors) => {
+    console.error("Form validation errors:", errors);
+  };
+
   const {
     form,
     onSubmit,
@@ -81,7 +85,10 @@ export function CreateTaskDialog({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={handleSubmit(onSubmit, onError)}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="title"
@@ -110,6 +117,18 @@ export function CreateTaskDialog({
                     />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem hidden>
+                  <FormControl>
+                    <Input type="hidden" {...field} />
+                  </FormControl>
                 </FormItem>
               )}
             />
