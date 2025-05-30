@@ -33,6 +33,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { Priority, Task, TaskStatus, User } from "@/lib/types/types";
 import { useSession } from "next-auth/react";
+import { API_URL } from "@/lib/utils/env";
 
 type TaskDetailDrawerProps = {
   task: Task;
@@ -77,14 +78,17 @@ export function TaskDetailDrawer({
   const addComment = async () => {
     if (newComment.trim()) {
       try {
-        const response = await fetch(`/api/boards/tasks/${task.id}/comments`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            content: newComment.trim(),
-            authorId: session?.data?.user?.id,
-          }),
-        });
+        const response = await fetch(
+          `${API_URL}/api/boards/tasks/${task.id}/comments`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              content: newComment.trim(),
+              authorId: session?.data?.user?.id,
+            }),
+          },
+        );
 
         if (response.ok) {
           const newCommentData = await response.json();

@@ -7,6 +7,7 @@ import {
   User,
   Board as BoardType,
 } from "@/lib/types/types";
+import { API_URL } from "@/lib/utils/env";
 import {
   DragEndEvent,
   DragOverEvent,
@@ -96,8 +97,8 @@ export function useDashboard(): useDashboardReturn {
     try {
       setLoading(true);
       const [boardsRes, usersRes] = await Promise.all([
-        fetch("/api/boards"),
-        fetch("/api/users"),
+        fetch(`${API_URL}/api/boards`),
+        fetch(`${API_URL}/api/users`),
       ]);
 
       if (boardsRes.ok && usersRes.ok) {
@@ -141,7 +142,7 @@ export function useDashboard(): useDashboardReturn {
 
   const loadTasks = async (boardId: string) => {
     try {
-      const response = await fetch(`/api/boards/${boardId}/tasks`, {
+      const response = await fetch(`${API_URL}/api/boards/${boardId}/tasks`, {
         next: { tags: ["tasks"] },
       });
       if (response.ok) {
@@ -303,7 +304,7 @@ export function useDashboard(): useDashboardReturn {
       if (shouldUpdateOrder && updatedTasks.length > 0) {
         updatedTasks.forEach((task, index) => {
           dbUpdates.push(
-            fetch(`/api/tasks/${task.id}`, {
+            fetch(`${API_URL}/api/tasks/${task.id}`, {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -315,7 +316,7 @@ export function useDashboard(): useDashboardReturn {
         });
       } else if (shouldUpdateStatus) {
         dbUpdates.push(
-          fetch(`/api/tasks/${activeId}`, {
+          fetch(`${API_URL}/api/tasks/${activeId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ status: newStatus }),
@@ -369,7 +370,7 @@ export function useDashboard(): useDashboardReturn {
 
   const createBoard = async (name: string, description: string) => {
     try {
-      const response = await fetch("/api/boards", {
+      const response = await fetch(`${API_URL}/api/boards`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, description }),
@@ -399,11 +400,14 @@ export function useDashboard(): useDashboardReturn {
     taskData: Omit<Task, "id" | "createdAt" | "updatedAt">,
   ) => {
     try {
-      const response = await fetch(`/api/boards/${activeBoard}/tasks`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(taskData),
-      });
+      const response = await fetch(
+        `${API_URL}/api/boards/${activeBoard}/tasks`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(taskData),
+        },
+      );
 
       if (response.ok) {
         const newTask = await response.json();
@@ -422,7 +426,7 @@ export function useDashboard(): useDashboardReturn {
 
   const updateTask = async (taskId: string, updates: Partial<Task>) => {
     try {
-      const response = await fetch(`/api/boards/tasks/${taskId}`, {
+      const response = await fetch(`${API_URL}/api/boards/tasks/${taskId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
@@ -449,7 +453,7 @@ export function useDashboard(): useDashboardReturn {
 
   const deleteTask = async (taskId: string) => {
     try {
-      const response = await fetch(`/api/boards/tasks/${taskId}`, {
+      const response = await fetch(`${API_URL}/api/boards/tasks/${taskId}`, {
         method: "DELETE",
       });
 

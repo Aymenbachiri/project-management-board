@@ -3,11 +3,14 @@ import type { CreateTaskInput } from "../validation/task";
 
 export async function createBoardTask(data: CreateTaskInput, boardId: string) {
   try {
-    const response = await fetch(`/api/boards/tasks?boardId=${boardId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+    const response = await fetch(
+      `${API_URL}/api/boards/tasks?boardId=${boardId}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      },
+    );
 
     if (!response.ok) {
       const error = await response.json();
