@@ -397,8 +397,6 @@ export function useDashboard(): useDashboardReturn {
 
   const createTask = async (taskData: CreateTaskInput) => {
     try {
-      console.log("Creating task with data:", taskData);
-
       const response = await fetch(
         `${API_URL}/api/boards/${activeBoard}/tasks`,
         {
@@ -408,11 +406,8 @@ export function useDashboard(): useDashboardReturn {
         },
       );
 
-      console.log("Response status:", response.status);
-
       if (response.ok) {
         const newTask = await response.json();
-        console.log("New task created:", newTask);
 
         const taskWithDisplayPriority = {
           ...newTask,
