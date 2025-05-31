@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getPriorityValue } from "@/lib/types/types";
 import { prisma } from "@/lib/db/prisma";
+import { CreateTaskSchema } from "@/lib/validation/task";
 
 type Params = Promise<{ boardId: string }>;
 
@@ -201,6 +202,10 @@ export async function GET(
  *                   type: string
  *                 description: Array of task tags
  *                 example: ["frontend", "authentication", "urgent"]
+ *               columnId:
+ *                 type: string
+ *                 description: MongoDB ObjectId of the column to place the task in.
+ *                 example: "68347e98c89372ac479a8b1c"
  *     responses:
  *       201:
  *         description: Task created successfully
@@ -290,7 +295,31 @@ export async function POST(
       return NextResponse.json("boardId is required", { status: 404 });
     }
 
-    const data = await request.json();
+    const objectIdPattern = /^[0-9a-fA-F]{24}$/;
+    if (!objectIdPattern.test(boardId)) {
+      return NextResponse.json(
+        {
+          error: "Invalid ID",
+          message: "The provided board ID is not a valid ObjectId.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const body = await request.json();
+
+    const result = CreateTaskSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        {
+          error: "Validation error",
+          issues: result.error.flatten().fieldErrors,
+        },
+        { status: 400 },
+      );
+    }
+
+    const data = result.data;
 
     const columns = await prisma.boardColumn.findMany({
       where: { boardId },
