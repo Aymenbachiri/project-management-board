@@ -17,7 +17,7 @@ export function useCreateTask(
   defaultStatus: useCreateTaskProps["defaultStatus"],
   columnId: useCreateTaskProps["columnId"],
 ) {
-  console.log("columnId: ", columnId);
+  console.log("columnId received: ", columnId, typeof columnId);
 
   const [tagInput, setTagInput] = useState("");
 
@@ -26,12 +26,11 @@ export function useCreateTask(
     defaultValues: {
       title: "",
       description: "",
-      status: defaultStatus,
       priority: "LOW" as Priority,
       dueDate: undefined,
       assigneeId: "",
       tags: [],
-      columnId: columnId,
+      columnId: String(columnId),
       order: undefined,
     },
   });
@@ -49,11 +48,12 @@ export function useCreateTask(
     try {
       console.log("Form data before processing:", data);
 
-      const formattedData = {
+      const formattedData: CreateTaskInput = {
         ...data,
-        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
-        assigneeId: data.assigneeId === "unassigned" ? null : data.assigneeId,
+        dueDate: data.dueDate,
+        assigneeId: data.assigneeId,
         order: data.order || 0,
+        columnId: String(data.columnId),
       };
 
       console.log("Formatted data being sent:", formattedData);
