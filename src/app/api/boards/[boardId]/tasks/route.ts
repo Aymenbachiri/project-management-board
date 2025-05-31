@@ -107,6 +107,17 @@ export async function GET(
       return NextResponse.json("boardId is required", { status: 404 });
     }
 
+    const objectIdPattern = /^[0-9a-fA-F]{24}$/;
+    if (!objectIdPattern.test(boardId)) {
+      return NextResponse.json(
+        {
+          error: "Invalid ID",
+          message: "The provided board ID is not a valid ObjectId.",
+        },
+        { status: 400 },
+      );
+    }
+
     const tasks = await prisma.task.findMany({
       where: { boardId },
       include: {

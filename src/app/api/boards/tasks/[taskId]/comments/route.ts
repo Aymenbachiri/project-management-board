@@ -115,6 +115,17 @@ export async function POST(
     return NextResponse.json("taskId is required", { status: 401 });
   }
 
+  const objectIdPattern = /^[0-9a-fA-F]{24}$/;
+  if (!objectIdPattern.test(taskId)) {
+    return NextResponse.json(
+      {
+        error: "Invalid ID",
+        message: "The provided task ID is not a valid ObjectId.",
+      },
+      { status: 400 },
+    );
+  }
+
   try {
     const session = await auth();
     const authorId = session?.user?.id as string;

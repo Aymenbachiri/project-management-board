@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db/prisma";
 import { getPriorityValue } from "@/lib/types/types";
 import { type NextRequest, NextResponse } from "next/server";
+import { Task } from "@/lib/types/types";
 
 type Params = Promise<{ taskId: string }>;
 
@@ -299,6 +300,17 @@ export async function PATCH(
     }
 
     const { taskId } = await params;
+    const objectIdPattern = /^[0-9a-fA-F]{24}$/;
+    if (!objectIdPattern.test(taskId)) {
+      return NextResponse.json(
+        {
+          error: "Invalid ID",
+          message: "The provided task ID is not a valid ObjectId.",
+        },
+        { status: 400 },
+      );
+    }
+
     const data = await request.json();
 
     const {
