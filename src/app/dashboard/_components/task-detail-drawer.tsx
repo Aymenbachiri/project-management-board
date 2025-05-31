@@ -92,6 +92,7 @@ export function TaskDetailDrawer({
 
         if (response.ok) {
           const newCommentData = await response.json();
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const updatedTask = {
             ...task,
             comments: [...task.comments, newCommentData],
@@ -293,7 +294,7 @@ export function TaskDetailDrawer({
                       onSelect={(date) =>
                         setEditedTask({
                           ...editedTask,
-                          dueDate: date?.toISOString() || null,
+                          dueDate: date as Date,
                         })
                       }
                       initialFocus

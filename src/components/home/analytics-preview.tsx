@@ -59,8 +59,8 @@ export function AnalyticsPreview(): JSX.Element {
             variants={fadeInUp}
             className="text-muted-foreground mx-auto max-w-3xl text-xl"
           >
-            Get deep insights into your team's productivity with comprehensive
-            analytics, visual charts, and key performance metrics.
+            Get deep insights into your team&apos;s productivity with
+            comprehensive analytics, visual charts, and key performance metrics.
           </motion.p>
         </motion.div>
 
@@ -104,7 +104,7 @@ export function AnalyticsPreview(): JSX.Element {
               trendUp: true,
               color: "text-purple-600",
             },
-          ].map((metric, index) => (
+          ].map((metric) => (
             <motion.div
               key={metric.title}
               variants={fadeInUp}

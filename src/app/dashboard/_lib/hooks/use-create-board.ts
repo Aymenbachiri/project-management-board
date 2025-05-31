@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 type useCreateBoardProps = {
-  onCreateBoard: (name: string, description: string) => Promise<void>;
+  onCreateBoard: (newBoard: string, description: string) => Promise<void>;
   onOpenChange: (open: boolean) => void;
 };
 
@@ -28,8 +28,8 @@ export function useCreateBoard(
 
   const onSubmit = async (data: CreateBoardInput) => {
     try {
-      const newBoard = await createBoard(data);
-      onCreateBoard(newBoard);
+      const { name, description } = await createBoard(data);
+      onCreateBoard(name, description);
       form.reset();
       onOpenChange(false);
       toast.success("Board created successfully!");

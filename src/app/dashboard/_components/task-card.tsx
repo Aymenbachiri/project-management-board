@@ -9,7 +9,7 @@ import { Calendar, MessageCircle, Paperclip } from "lucide-react";
 import { format } from "date-fns";
 import type { JSX } from "react";
 import { cn } from "@/lib/utils";
-import { Task, User } from "@prisma/client";
+import { Task, User } from "@/lib/types/types";
 
 type TaskCardProps = {
   task: Task;
@@ -106,7 +106,7 @@ export function TaskCard({ task, users, onClick }: TaskCardProps): JSX.Element {
               />
               <AvatarFallback className="text-xs">
                 {assignee?.name
-                  .split(" ")
+                  ?.split(" ")
                   .map((n) => n[0])
                   .join("")}
               </AvatarFallback>

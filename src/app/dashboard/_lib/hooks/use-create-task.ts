@@ -27,6 +27,7 @@ export function useCreateTask(
       priority: "LOW" as Priority,
       dueDate: undefined,
       assigneeId: "",
+      status: defaultStatus,
       tags: [],
       columnId: String(columnId),
       order: undefined,

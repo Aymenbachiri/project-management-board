@@ -54,7 +54,6 @@ export function Board({
           onCreateTask={(taskData) =>
             onCreateTask({
               ...taskData,
-              boardId: board.id,
               status: column.id as TaskStatus,
             })
           }

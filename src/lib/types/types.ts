@@ -14,9 +14,9 @@ export interface User extends PrismaUser {
   avatar?: string;
 }
 
-export interface Comment extends PrismaComment {}
+export type Comment = PrismaComment;
 
-export interface Attachment extends PrismaAttachment {}
+export type Attachment = PrismaAttachment;
 
 export interface Task extends PrismaTask {
   assignee?: User | null;

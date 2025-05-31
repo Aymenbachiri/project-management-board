@@ -4,7 +4,7 @@ import { SignupPage } from "./_components/signup-page";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
-export const metadat: Metadata = {
+export const metadata: Metadata = {
   title: "signup",
   description: "signup",
 };
