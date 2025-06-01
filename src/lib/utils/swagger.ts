@@ -9,6 +9,18 @@ export const getApiDocs = async () => {
         title: "ProjectFlow API Documentation",
         version: "1.0",
       },
+      servers: [
+        {
+          url:
+            process.env.NODE_ENV === "production"
+              ? "https://project-management-board-nine.vercel.app"
+              : "http://localhost:3000",
+          description:
+            process.env.NODE_ENV === "production"
+              ? "Production"
+              : "Development",
+        },
+      ],
       components: {
         securitySchemes: {
           BearerAuth: {
