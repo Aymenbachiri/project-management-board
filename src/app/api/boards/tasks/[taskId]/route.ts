@@ -3,7 +3,6 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db/prisma";
 import { getPriorityValue } from "@/lib/types/types";
 import { type NextRequest, NextResponse } from "next/server";
-import { Task } from "@/lib/types/types";
 
 type Params = Promise<{ taskId: string }>;
 
@@ -337,7 +336,7 @@ export async function PATCH(
 
     const task = await prisma.task.update({
       where: { id: taskId },
-      data,
+      data: updateData,
       include: {
         assignee: true,
         comments: { include: { author: true } },
