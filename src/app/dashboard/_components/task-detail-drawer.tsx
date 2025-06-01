@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX, useState } from "react";
+import { type JSX } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,10 +30,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { CalendarIcon, X, MessageCircle, Trash2, Send } from "lucide-react";
 import { format } from "date-fns";
-import { toast } from "sonner";
 import { Priority, Task, TaskStatus, User } from "@/lib/types/types";
-import { useSession } from "next-auth/react";
-import { API_URL } from "@/lib/utils/env";
+import { useTaskDetail } from "../_lib/hooks/use-task-detail";
 
 type TaskDetailDrawerProps = {
   task: Task;
@@ -54,79 +52,29 @@ export function TaskDetailDrawer({
   onDeleteTask,
   setIsTaskDetailOpen,
 }: TaskDetailDrawerProps): JSX.Element {
-  const session = useSession();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedTask, setEditedTask] = useState(task);
-  const [newComment, setNewComment] = useState("");
-  const [tagInput, setTagInput] = useState("");
-
-  const assignee = users.find((user) => user.id === task.assigneeId);
-
-  const handleSave = () => {
-    onUpdateTask(task.id, editedTask);
-    setIsEditing(false);
-    setIsTaskDetailOpen(false);
-    toast.success("Task updated successfully");
-  };
-
-  const handleDelete = () => {
-    onDeleteTask(task.id);
-    onOpenChange(false);
-    toast.success("Task deleted successfully");
-  };
-
-  const addComment = async () => {
-    if (newComment.trim()) {
-      try {
-        const response = await fetch(
-          `${API_URL}/api/boards/tasks/${task.id}/comments`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              content: newComment.trim(),
-              authorId: session?.data?.user?.id,
-            }),
-          },
-        );
-
-        if (response.ok) {
-          const newCommentData = await response.json();
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const updatedTask = {
-            ...task,
-            comments: [...task.comments, newCommentData],
-          };
-          setNewComment("");
-          setIsTaskDetailOpen(false);
-          toast.success("Comment added");
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
-        }
-      } catch (error) {
-        console.error("Error adding comment:", error);
-        toast.error("Failed to add comment");
-      }
-    }
-  };
-
-  const addTag = () => {
-    if (tagInput.trim() && !editedTask.tags.includes(tagInput.trim())) {
-      setEditedTask({
-        ...editedTask,
-        tags: [...editedTask.tags, tagInput.trim()],
-      });
-      setTagInput("");
-    }
-  };
-
-  const removeTag = (tag: string) => {
-    setEditedTask({
-      ...editedTask,
-      tags: editedTask.tags.filter((t) => t !== tag),
-    });
-  };
+  const {
+    isEditing,
+    editedTask,
+    newComment,
+    tagInput,
+    assignee,
+    handleSave,
+    handleDelete,
+    addComment,
+    addTag,
+    removeTag,
+    setIsEditing,
+    setEditedTask,
+    setNewComment,
+    setTagInput,
+  } = useTaskDetail(
+    task,
+    users,
+    onUpdateTask,
+    setIsTaskDetailOpen,
+    onDeleteTask,
+    onOpenChange,
+  );
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
