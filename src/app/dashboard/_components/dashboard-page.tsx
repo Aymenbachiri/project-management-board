@@ -209,9 +209,9 @@ export function DashboardPage({}: DashboardPageProps): JSX.Element {
           users={users}
           open={isTaskDetailOpen}
           onOpenChange={setIsTaskDetailOpen}
-          setIsTaskDetailOpen={setIsTaskDetailOpen}
           onUpdateTask={updateTask}
           onDeleteTask={deleteTask}
+          setIsTaskDetailOpen={setIsTaskDetailOpen}
         />
       )}
     </div>
