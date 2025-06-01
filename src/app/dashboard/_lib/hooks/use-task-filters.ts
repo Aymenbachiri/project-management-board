@@ -9,11 +9,24 @@ type UseTaskFiltersProps = {
   onFiltersChange: (filters: FilterType) => void;
 };
 
+type UseTaskFiltersReturn = {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  tagInput: string;
+  setTagInput: (tagInput: string) => void;
+  allTags: string[];
+  activeFiltersCount: number;
+  updateFilter: (key: string, value: any) => void;
+  addTag: (tag: string) => void;
+  removeTag: (tag: string) => void;
+  clearFilters: () => void;
+};
+
 export function useTaskFilters(
   tasks: UseTaskFiltersProps["tasks"],
   filters: UseTaskFiltersProps["filters"],
   onFiltersChange: UseTaskFiltersProps["onFiltersChange"],
-) {
+): UseTaskFiltersReturn {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [tagInput, setTagInput] = useState<string>("");
 
