@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { type JSX, useState } from "react";
+import { type JSX } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Filter, X } from "lucide-react";
 import { Task, User } from "@/lib/types/types";
 import { Filter as FilterType } from "../_lib/hooks/use-dashboard";
+import { useTaskFilters } from "../_lib/hooks/use-task-filters";
 
 type TaskFiltersProps = {
   filters: FilterType;
@@ -35,41 +35,18 @@ export function TaskFilters({
   users,
   tasks,
 }: TaskFiltersProps): JSX.Element {
-  const [isOpen, setIsOpen] = useState(false);
-  const [tagInput, setTagInput] = useState("");
-
-  const allTags = Array.from(new Set(tasks.flatMap((task) => task.tags)));
-  const activeFiltersCount = Object.values(filters).filter(
-    (value) => value && (Array.isArray(value) ? value.length > 0 : true),
-  ).length;
-
-  const updateFilter = (key: string, value: any) => {
-    onFiltersChange({ ...filters, [key]: value });
-  };
-
-  const addTag = (tag: string) => {
-    if (tag && !filters.tags.includes(tag)) {
-      updateFilter("tags", [...filters.tags, tag]);
-    }
-    setTagInput("");
-  };
-
-  const removeTag = (tag: string) => {
-    updateFilter(
-      "tags",
-      filters.tags.filter((t) => t !== tag),
-    );
-  };
-
-  const clearFilters = () => {
-    onFiltersChange({
-      assignee: "",
-      tags: [],
-      priority: "",
-      status: "",
-      dueDateRange: null,
-    });
-  };
+  const {
+    isOpen,
+    setIsOpen,
+    tagInput,
+    setTagInput,
+    allTags,
+    activeFiltersCount,
+    updateFilter,
+    addTag,
+    removeTag,
+    clearFilters,
+  } = useTaskFilters(tasks, filters, onFiltersChange);
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
