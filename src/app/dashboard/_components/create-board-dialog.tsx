@@ -76,7 +76,7 @@ export function CreateBoardDialog({
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Enter board description (optional)"
+                      placeholder="Enter board description"
                       rows={3}
                       disabled={isSubmitting}
                       className="resize-none"

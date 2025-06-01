@@ -7,8 +7,8 @@ export const createBoardSchema = z.object({
     .max(50, "Board name must be less than 50 characters"),
   description: z
     .string()
-    .max(200, "Description must be less than 200 characters")
-    .optional(),
+    .min(1, "Description is required")
+    .max(200, "Description must be less than 200 characters"),
 });
 
 export type CreateBoardInput = z.infer<typeof createBoardSchema>;
