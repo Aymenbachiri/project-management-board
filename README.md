@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Project Management Board
+
+A modern project management application built with Next.js App Router, featuring drag-and-drop functionality, user authentication, and comprehensive task management capabilities.
+
+## Features
+
+- 🎯 **Task Management**: Create, edit, and organize tasks with priorities and due dates
+- 🔄 **Drag & Drop**: Intuitive drag-and-drop interface powered by @dnd-kit
+- 👤 **Authentication**: Secure user authentication with NextAuth.js
+- 📊 **Progress Tracking**: Visual progress indicators and analytics with Recharts
+- 🌙 **Dark Mode**: Built-in theme switching with next-themes
+- 📱 **Responsive Design**: Mobile-first design with Tailwind CSS
+- 🔍 **API Documentation**: Interactive API documentation available
+- 📝 **Form Validation**: Robust form handling with React Hook Form and Zod
+
+## Tech Stack
+
+- **Framework**: Next.js 15 with App Router
+- **Runtime**: Bun
+- **Database**: MongoDB with Prisma ORM
+- **Authentication**: Auth.js v5
+- **UI Components**: Shadcn
+- **Styling**: Tailwind CSS v4
+- **Drag & Drop**: @dnd-kit
+- **Forms**: React Hook Form with Zod validation
+- **Charts**: Recharts
+- **Animations**: Framer Motion
+
+## Prerequisites
+
+- [Bun](https://bun.sh/) (latest version)
+- MongoDB database
+- Node.js 18+ (for compatibility)
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone the repository
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+git clone https://github.com/Aymenbachiri/project-management-board.git
+cd project-managment-board
+```
+
+### 2. Install dependencies
+
+```bash
+bun install
+```
+
+### 3. Environment Setup
+
+Create a `.env` file in the root directory and copy the contents from `env.example`:
+
+```bash
+cp env.example .env
+```
+
+Then fill in your environment variables in the `.env` file with your actual values.
+
+### 4. Database Setup
+
+Generate Prisma client and run migrations:
+
+```bash
+bunx prisma generate
+bunx prisma db push
+```
+
+### 5. Run the development server
+
+```bash
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The application will be available at [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `bun dev` - Start development server with Turbopack
+- `bun run build` - Build the application for production
+- `bun start` - Start the production server
+- `bun lint` - Run ESLint for code linting
 
-## Learn More
+## API Documentation
 
-To learn more about Next.js, take a look at the following resources:
+Interactive API documentation is available at `/api-doc` when the application is running.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Visit [http://localhost:3000/api-doc](http://localhost:3000/api-doc) to explore the API endpoints and test them directly in the browser.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Key Dependencies
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **@dnd-kit/core & @dnd-kit/sortable**: Drag and drop functionality
+- **@prisma/client**: Database ORM
+- **next-auth**: Authentication solution
+- **@radix-ui/\***: Accessible UI primitives
+- **react-hook-form**: Form state management
+- **zod**: Schema validation
+- **recharts**: Data visualization
+- **tailwindcss**: Utility-first CSS framework
